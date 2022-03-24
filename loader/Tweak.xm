@@ -393,15 +393,15 @@ static bool noads(id self, SEL _cmd){
         RelicHookMessageEx(%c(SCContextV2SwipeUpGestureTracker), @selector(setPresented:animated:source:completion:), (void *)savebtn, &orig_savebtn);
         RelicHookMessageEx(%c(SCChatViewHeader), @selector(attachCallButtonsPane), (void *)hidebuttons, &orig_hidebuttons);
         //RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(pageViewName), (void *)pagename, &orig_pagename);
-         RelicHookFunction(%c(SCAdsHoldoutExperimentContext), @selector(canShowShowsAds), (void *)noads);
-         RelicHookFunction(%c(SCAdsHoldoutExperimentContext), @selector(canShowEmbeddedWebViewAds), (void *)noads);
-         RelicHookFunction(%c(SCAdsHoldoutExperimentContext), @selector(canShowPublicStoriesAds), (void *)noads);
-         RelicHookFunction(%c(SCAdsHoldoutExperimentContext), @selector(canShowDiscoverAds), (void *)noads);
-         RelicHookFunction(%c(SCAdsHoldoutExperimentContext), @selector(canShowContentInterstitialAds), (void *)noads);
-         RelicHookFunction(%c(SCAdsHoldoutExperimentContext), @selector(canShowCognacAds), (void *)noads);
-         RelicHookFunction(%c(SCAdsHoldoutExperimentContext), @selector(canShowStoryAds), (void *)noads);
-         RelicHookFunction(%c(SCAdsHoldoutExperimentContext), @selector(canShowUserStoriesAds), (void *)noads);
-         RelicHookFunction(%c(SCAdsHoldoutExperimentContext), @selector(canShowAds), (void *)noads);
+         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowShowsAds), (void *)noads);
+         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowEmbeddedWebViewAds), (void *)noads);
+         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowPublicStoriesAds), (void *)noads);
+         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowDiscoverAds), (void *)noads);
+         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowContentInterstitialAds), (void *)noads);
+         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowCognacAds), (void *)noads);
+         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowStoryAds), (void *)noads);
+         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowUserStoriesAds), (void *)noads);
+         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowAds), (void *)noads);
     });
     
     NSLog(@"[Shadow X] Hooks Initialized.");
@@ -409,6 +409,62 @@ static bool noads(id self, SEL _cmd){
     NSLog(@"[Shadow X] Contact no5up#9993 or Kanji#2222 with important information");
     [[ShadowData sharedInstance] load];
 }
+/*
+%hook SCNMessagingMessage
+- (BOOL)canDelete{
+    return NO;
+}
+- (_Bool)isErasedSnapStatusMessage{
+    return NO;
+}
+%end
+
+%hook SCFideliusMessageEncryptionKeyTable
+- (BOOL)_deleteRecordsOlderThanTimestamp:(double)arg1{
+    return NO;
+}
+- (void)deleteRecord:(id)arg1 messageId:(long long)arg2{
+    %orig(nil,1);
+}
+%end
+
+%hook SCChatFailedMessageDeleteActionData
+- (BOOL)isEqual:(id)arg1{
+    return NO;
+}
+-(NSString *)messageId{
+    return nil;
+}
+-(NSString *)conversationId{
+    return nil;
+}
+%end
+
+%hook SOJUGalleryServletDeleteEntriesResponse
++ (void)registerMessageFields:(id)arg1{
+    %orig(nil);
+}
+%end
+
+%hook SCListsLists
+- (id)deleteListsWithMessage:(id)arg1 responseHandler:(id)arg2 callOptions:(id)arg3{
+    return nil;
+}
+
+%end
+
+%hook SCStackedChatViewModel
+- (BOOL)canStackMessage:(id)arg1 lastDeletedSequenceNumber:(unsigned long long)arg2{
+    return NO;
+}
+%end
+
+%hook SCStackedStickerChatViewModel
+- (BOOL)canStackMessage:(id)arg1 lastDeletedSequenceNumber:(unsigned long long)arg2{
+    return NO;
+}
+%end
+
 
 %dtor{
     [[ShadowData sharedInstance] save];
@@ -416,7 +472,7 @@ static bool noads(id self, SEL _cmd){
 }
 
 
-/*
+
 
 static BOOL (*orig_savehax)(id self, SEL _cmd);
 BOOL savehax(id self, SEL _cmd){
@@ -432,7 +488,6 @@ static void snapghost(id self, SEL _cmd, long long arg1, id arg2, long long arg3
     NSLog(@"Hello, you opened a snap!");
     orig_snapghost(self, _cmd, arg1, arg2, arg3, arg4);
 }
-
 
 
 %ctor {
