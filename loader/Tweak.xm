@@ -49,6 +49,8 @@
 #import "ShadowImportUtil.h"
 #import "RainbowRoad.h"
 
+#import "XLLogerManager.h"
+
 @interface SCStatusBarOverlayLabelWindow : UIWindow
 +(void)showErrorWithText:(id)arg1 backgroundColor:(id)arg2;
 +(void)showMessageWithText:(id)arg1 backgroundColor:(id)arg2;
@@ -257,6 +259,7 @@ static void (*orig_hidebtn)(id self, SEL _cmd);
 static void hidebtn(id self, SEL _cmd){
     orig_hidebtn(self, _cmd);
     if(![[ShadowData sharedInstance] enabled_secure: "hidenewchat"]) return;
+    [[XLLogerManager manager] showOnWindow];
     [self performSelector:@selector(removeFromSuperview)];
 }
 
@@ -370,7 +373,10 @@ static bool noads(id self, SEL _cmd){
 %ctor{
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){
         NSLog(@"APP LOADED");
+        //[[XLLogerManager manager] showOnWindow];
     }];
+    [[XLLogerManager manager] prepare];
+    //[[XLLogerManager manager] showOnWindow];
     if( [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.toyopagroup.picaboo"]) NSLog(@"IGNORE THIS UNLESS YOURE HOOKING UIKIT");
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{

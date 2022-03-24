@@ -49,19 +49,19 @@
     
     UIView *container = self;
     container.clipsToBounds = YES;
-    container.layer.borderColor = [UIColor colorWithRed:0.851 green:0.851 blue:0.851 alpha:1.000].CGColor;
+    container.layer.borderColor = [UIColor colorWithRed:0.12 green:0.12 blue:0.12 alpha:1.0].CGColor;
     container.layer.borderWidth = 1.0f;
     container.layer.cornerRadius = 8;
     
     UIView *topView = [[UIView alloc] init];
-    topView.backgroundColor = [UIColor colorWithRed:0.929 green:0.933 blue:0.937 alpha:1.000];
+    topView.backgroundColor = [UIColor colorWithRed:0.18 green:0.18 blue:0.18 alpha:1.0];
     [container addSubview:topView];
     topView.translatesAutoresizingMaskIntoConstraints = NO;
     self.topView = topView;
     [self initTopViews];
     
     UIView *bottomView = [[UIView alloc] init];
-    bottomView.backgroundColor = [UIColor colorWithRed:0.929 green:0.933 blue:0.937 alpha:1.000];
+    bottomView.backgroundColor = [UIColor colorWithRed:0.18 green:0.18 blue:0.18 alpha:1.0];
     [container addSubview:bottomView];
     bottomView.translatesAutoresizingMaskIntoConstraints = NO;
     self.bottomView = bottomView;
@@ -71,7 +71,7 @@
     textView.editable = NO;
     textView.textColor = [XLLogerManager manager].textColor;
     textView.font = [UIFont systemFontOfSize:[XLLogerManager manager].textSize];
-    textView.backgroundColor = [UIColor colorWithRed:0.137 green:0.234 blue:0.329 alpha:1.000];
+    textView.backgroundColor = [UIColor colorWithRed:0.20 green:0.20 blue:0.20 alpha:1.0];
     textView.delegate = self;
     [container addSubview:textView];
     textView.translatesAutoresizingMaskIntoConstraints = NO;

@@ -7,7 +7,7 @@ THEOS_DEVICE_IP = 127.0.0.1
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = relicloader
-relicloader_FILES = Tweak.xm
+relicloader_FILES = Tweak.xm interface/XLLogerManager.m interface/XLLogerView.m interface/XLWindow.m
 relicloader_CFLAGS = -fobjc-arc -Iinclude -Iinterface -Wno-arc-performSelector-leaks -Wno-format-security -Wno-unused-function -Wno-unused-variable -Wno-deprecated-declarations
 relicloader_EXTRA_FRAMEWORKS := CoreGraphics AssetsLibrary UIKit AVKit CoreFoundation QuartzCore MobileCoreServices AVFoundation CoreLocation
 include $(THEOS_MAKE_PATH)/tweak.mk
