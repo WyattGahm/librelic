@@ -1,0 +1,10 @@
+Package: com.wyattgahm.relicloader
+Name: relicloader
+Depends: mobilesubstrate
+Version: 1.0.1
+Architecture: iphoneos-arm
+Description: A testing package for librelic2. NOT FOR USE BY NON-DEV
+Depends: librelic (>= 2.0.0)
+Maintainer: Wyatt Gahm
+Author: Wyatt Gahm
+Section: Development
