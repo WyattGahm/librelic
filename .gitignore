@@ -4,6 +4,9 @@ obj/
 
 .theos/
 
+
+.DS_Store
+
 _/
 
 /*.deb
