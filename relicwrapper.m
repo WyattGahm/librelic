@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <objc/runtime.h>
 
-#define MSHookMessageEx(class, selector, callback, original) RelicHookMessageEx(class, selector, callback, original);
+//#define MSHookMessageEx(class, selector, callback, original) RelicHookMessageEx(class, selector, callback, original);
 #define RCHookMessageEx(class, selector, callback, original) RelicHookMessageEx(class, selector, callback, original);
 #define RCHookMessage(class, selector, callback) RelicHookMessage(class, selector, callback);
 
