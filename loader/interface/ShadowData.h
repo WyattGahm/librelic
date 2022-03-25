@@ -52,7 +52,7 @@
         @[@"subtitle", @"Hide Subtitle", @"Hide the subtitle containing an MOTD or something from the devs",@FALSE],
         @[@"upload", @"Upload From Camera Roll", @"Press the upload button to select an image and then press the button to take a picture.", @TRUE],
         @[@"nocall", @"Hide Call Buttons", @"Hide the call buttons on recent UI versions.",@TRUE],
-        @[@"pinnedchats",@"Override Pin Limit", @"Enter a number to use as the maximum number of chat pins",@TRUE,@"351"],
+        @[@"pinnedchats",@"Override Pin Limit", @"Enter a number for the chat pin limit",@TRUE,@"351"],
         @[@"savebutton", @"Use Save Button", @"This option will provide a save button to replace the menu option.", @TRUE],
         @[@"callconfirmvideo", @"Video Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
         @[@"callconfirmaudio", @"Audio Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
