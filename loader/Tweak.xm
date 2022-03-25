@@ -142,7 +142,59 @@ static void save(id self, SEL _cmd){
       }
     }
 }
-
+/*
+static void saveauto(id self,NSString * folder){
+    NSLog(@"AUTOSAVING: %@", folder);
+    NSArray* mediaArray = [self shareableMedias];
+    //the mediaArray has 1 object, meaning most likely it is image
+    if (mediaArray.count == 1){
+      SCOperaShareableMedia *mediaObject = (SCOperaShareableMedia *)[mediaArray firstObject];
+      //double check that the mediaObject is a image mediaType
+      if (mediaObject.mediaType == 0){
+        UIImage *snapImage = [mediaObject image];
+          NSString * mediaId = (NSString *)[[self performSelector:@selector(page)] performSelector:@selector(_id)];
+          NSURL *filePath = [[NSURL fileURLWithPath:folder] URLByAppendingPathComponent: [mediaId stringByAppendingString: @".png"]];
+          NSLog(@"SAVING IMAGE: %@", filePath.absoluteString);
+          [UIImagePNGRepresentation(snapImage) writeToFile:filePath.absoluteString atomically:YES];
+        //UIImageWriteToSavedPhotosAlbum(snapImage, nil, nil, nil);
+        //[%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
+      }
+      //add error checking
+      else{
+        //[%c(SCStatusBarOverlayLabelWindow) showErrorWithText:@"Uh oh! Failed to save this snap. 😢" backgroundColor:[UIColor colorWithRed:255/255.0 green:0/255.0 blue:0/255.0 alpha:1]];
+      }
+    }
+    //the mediaArray has more than one object, meaning most likely it is a video
+    else{
+      //enumerate through the array to check which object contains the video asset
+      for (SCOperaShareableMedia *mediaObject in mediaArray){
+        //check if mediaObject is video mediaType and it's videoAsset is not null
+        if ((mediaObject.mediaType == 1) && (mediaObject.videoAsset) && (mediaObject.videoURL == nil)){
+          AVURLAsset *asset = (AVURLAsset *)(mediaObject.videoAsset);
+          NSURL *assetURL = asset.URL;
+          NSURL *tempVideoFileURL = [[NSURL fileURLWithPath:folder] URLByAppendingPathComponent: [assetURL lastPathComponent]];
+          AVAssetExportSession *exportSession = [[AVAssetExportSession alloc]initWithAsset:asset presetName:AVAssetExportPresetHighestQuality];
+          exportSession.outputURL = tempVideoFileURL;
+          exportSession.outputFileType = AVFileTypeQuickTimeMovie;
+          [exportSession exportAsynchronouslyWithCompletionHandler:^{
+              NSLog(@"SAVING VIDEO 1: %@", tempVideoFileURL.absoluteString);
+          }];
+        }
+        //did not find a video asset but we did find a cached video url
+        else if(mediaObject.mediaType == 1 && mediaObject.videoURL && mediaObject.videoAsset == nil){
+            NSURL *tempVideoFileURL = [[NSURL fileURLWithPath:folder] URLByAppendingPathComponent: [mediaObject.videoURL lastPathComponent]];
+            NSLog(@"SAVING VIDEO 2: %@", tempVideoFileURL.absoluteString);
+            id uhoh;
+            [[NSFileManager defaultManager] copyItemAtPath: mediaObject.videoURL.path toPath: tempVideoFileURL.path error:&uhoh];
+            //rename("from.txt", "to.txt")
+            NSLog(@"GOT ERROR: %@", uhoh);
+          //UISaveVideoAtPathToSavedPhotosAlbum(mediaObject.videoURL.path,nil,nil,nil);
+         // [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
+        }
+      }
+    }
+}
+*/
 
 
 static void (*orig_savebtn)(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4);
@@ -186,7 +238,13 @@ static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4)
 static void (*orig_markheader)(id self, SEL _cmd, NSUInteger arg1);
 static void markheader(id self, SEL _cmd, NSUInteger arg1){
     orig_markheader(self, _cmd, arg1);
-    if(![[ShadowData sharedInstance] enabled_secure: "notitle"]) ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = @"Shadow X";
+    if(![[ShadowData sharedInstance] enabled_secure: "notitle"]){
+        if([[ShadowData sharedInstance] enabled: @"customtitle"]){
+            ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = [ShadowData sharedInstance].settings[@"customtitle"];
+        }else{
+            ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = @"Shadow X";
+        }
+    }
     
     SIGHeaderTitle *headerTitle = (SIGHeaderTitle *)[[[[(UIView *)self subviews] lastObject].subviews lastObject].subviews firstObject];
     UITapGestureRecognizer *singleFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:headerTitle action:@selector(_titleTapped:)];
@@ -195,8 +253,9 @@ static void markheader(id self, SEL _cmd, NSUInteger arg1){
     
     if(![[label class] isEqual: %c(SIGLabel)])return;
     SIGLabel *subtitle = [headerTitle.subviews lastObject];
+    //[subtitle addGestureRecognizer:singleFingerTap];
     
-    if([[ShadowData sharedInstance] enabled_secure: "subtitle"]){
+    if(![[ShadowData sharedInstance] enabled_secure: "subtitle"]){
         [subtitle setHidden: NO];
         id user = [%c(User) performSelector:@selector(createUser)];
         NSString *dispname = (NSString *)[user performSelector:@selector(displayName_LEGACY_DO_NOT_USE)];
@@ -219,6 +278,11 @@ static void markheader(id self, SEL _cmd, NSUInteger arg1){
 static void (*orig_loaded2)(id self, SEL _cmd);
 static void loaded2(id self, SEL _cmd){
     orig_loaded2(self, _cmd);
+    /*
+    if([[ShadowData sharedInstance] enabled: @"folder"]){
+        saveauto(self,[ShadowData sharedInstance].settings[@"folder"]);
+    }
+    */
     if([[ShadowData sharedInstance] enabled_secure: "seenbutton"]){
         //if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]) return;
         NSString * pathToIcon = [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject].path stringByAppendingPathComponent:@"Composer/resources-common_profile.dir/res/hide.png"];
@@ -394,6 +458,38 @@ static unsigned long long screenshots(id self, SEL _cmd){
 static bool noads(id self, SEL _cmd){
     return ![[ShadowData sharedInstance] enabled_secure: "noads"];
 }
+
+
+
+static void reset(){
+    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset all settings to default and close the App. Is that okay?"];
+    SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
+        [ShadowData resetSettings];
+        [alert dismissViewControllerAnimated:YES completion:nil];
+        exit(0);
+    }];
+    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    
+    
+    [alert _setActions: @[back,call]];
+    
+    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+    [topVC presentViewController: alert animated: true completion:nil];
+}
+
+
+
+static void (*orig_pinned)(id self, SEL _cmd, id arg1);
+static void pinned(id self, SEL _cmd, id arg1){
+    if([[ShadowData sharedInstance] enabled_secure: "pinnedchats"]){
+        MSHookIvar<long long>(self,"_maxPinnedConversations") = [[ShadowData sharedInstance].settings[@"pinnedchats"] intValue];
+    }
+    orig_pinned(self, _cmd, arg1);
+}
+
 %ctor{
     /*
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){
@@ -421,11 +517,13 @@ static bool noads(id self, SEL _cmd){
         RelicHookMessageEx(%c(SCNMessagingSnapManager),@selector(onSnapInteraction:conversationId:messageId:callback:), (void *)snapghost, &orig_snapghost);
         //new
         RelicHookMessage(%c(SCOperaPageViewController), @selector(saveSnap), (void *)save);
+        RelicHookMessage(%c(ShadowSettingsViewController), @selector(reset), (void *)reset);
         RelicHookMessage(%c(SCSwipeViewContainerViewController), @selector(upload), (void *)uploadhandler);
         
         //RelicHookMessage(%c(SCContextActionBarZoneView), @selector(onTapActionBarElement:), (void *)temptapaction);
         RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);
         
+        RelicHookMessageEx(%c(SCPinnedConversationsDataCoordinator), @selector(fetchPinnedTimestampsByFeedIdWithCompletion:), (void *)pinned, &orig_pinned);
         RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(viewDidLoad), (void *)loaded, &orig_loaded);
         RelicHookMessageEx(%c(SCContextV2SwipeUpGestureTracker), @selector(setPresented:animated:source:completion:), (void *)savebtn, &orig_savebtn);
         RelicHookMessageEx(%c(SCChatViewHeader), @selector(attachCallButtonsPane), (void *)hidebuttons, &orig_hidebuttons);

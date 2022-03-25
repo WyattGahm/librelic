@@ -2,6 +2,7 @@
 #include "ShadowInformationViewController.h"
 #include "RainbowRoad.h"
 
+
 @interface ShadowSettingsViewController: UIViewController <UITableViewDelegate,UITableViewDataSource,UITextFieldDelegate>
 @property (strong,nonatomic) UITableView *table;
 @end
@@ -35,7 +36,7 @@
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    return 70;
+    return 65;
 }
 
 
@@ -60,8 +61,13 @@
         cell.detailTextLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:12];
         [cell setBackgroundColor:[UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00]];
     }
-    
-    if(entry.useEntry){
+    if([entry.key isEqualToString:@"reset"]){
+        UIButton * resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [resetButton addTarget:self action:@selector(reset) forControlEvents:UIControlEventTouchUpInside];
+        [resetButton setTitle:@"Reset" forState:UIControlStateNormal];
+        cell.accessoryView = resetButton;
+        [resetButton sizeToFit];
+    } else if(entry.useEntry){
         //UITextField *textField = [[UITextField alloc] initWithFrame:];
         UITextField *textField = [UITextField new];
         //CGSize size = [textField sizeThatFits:CGSizeMake(cell.frame.size.width , cell.frame.size.height)];
@@ -163,5 +169,7 @@
 
 -(void)morePressed:(UIBarButtonItem*)item{
     [self presentViewController:[ShadowInformationViewController new] animated:true completion:nil];
+}
+-(void)reset{
 }
 @end

@@ -45,13 +45,14 @@
         @[@"storyghost", @"Story Ghost", @"View stories anonymously.", @FALSE],
         @[@"ads", @"Disable Ads", @"Block all advertisements", @FALSE],
         @[@"snapghost", @"Snap Ghost", @"Snaps and messages will appear unviewed/unopened.", @FALSE],
-        @[@"folder",@"Autosave Folder", @"Leave blank to not save.",@FALSE,@"/var/mobile/Documents/snaps/"],
+        @[@"customtitle",@"Custom Title", @"Leave blank to use default",@FALSE,@""],
         @[@"spoofviews",@"Spoof Story Views", @"Leave blank for normal.",@FALSE,@"1034789"],
         @[@"spoofsc",@"Spoof Story Screenshots", @"Leave blank for normal.",@FALSE,@"871239"],
         @[@"save", @"Save To Camera Roll", @"Tap and hold while viewing a snap to bring up the UI press \"Save Snap Shadow\".",@TRUE],
         @[@"subtitle", @"Hide Subtitle", @"Hide the subtitle containing an MOTD or something from the devs",@FALSE],
         @[@"upload", @"Upload From Camera Roll", @"Press the upload button to select an image and then press the button to take a picture.", @TRUE],
         @[@"nocall", @"Hide Call Buttons", @"Hide the call buttons on recent UI versions.",@TRUE],
+        @[@"pinnedchats",@"Override Pin Limit", @"Enter a number to use as the maximum number of chat pins",@TRUE,@"351"],
         @[@"savebutton", @"Use Save Button", @"This option will provide a save button to replace the menu option.", @TRUE],
         @[@"callconfirmvideo", @"Video Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
         @[@"callconfirmaudio", @"Audio Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
@@ -62,6 +63,7 @@
         @[@"rgb", @"Cool RGB Animation", @"Makes the shadow header RBG (think chromahomebarX).", @TRUE],
         @[@"notitle", @"Keep Normal Title", @"Enable this to hide the \"Shadow X\" label", @FALSE],
         @[@"hotdog", @"Download Hotdog Images", @"Disabling this wont change anything, downloading hotdog images regardless.", @TRUE],
+        @[@"reset", @"Reset All Settings", @"Requires closing and opening Snapchat", @FALSE],
     ]];
     [self syncSettings];
     self.location = [NSMutableDictionary new];
@@ -149,7 +151,7 @@
     for(ShadowSetting *setting in self.prefs){
         if([setting.key isEqualToString:key]){
             if(setting.useEntry){
-                return (setting.entry.length > 0);
+                return ![setting.entry isEqualToString:@""];
             }else{
                return setting.value;
             }
@@ -165,7 +167,7 @@
     for(ShadowSetting *setting in self.prefs){
         if([setting.key isEqualToString:key]){
             if(setting.useEntry){
-                return (setting.entry.length > 0);
+                return ![setting.entry isEqualToString:@""];
             }else{
                return setting.value;
             }
