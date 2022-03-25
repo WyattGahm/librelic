@@ -455,8 +455,12 @@ static unsigned long long screenshots(id self, SEL _cmd){
     return [[ShadowData sharedInstance].settings[@"spoofsc"] intValue];
 }
 
+
 static bool noads(id self, SEL _cmd){
-    return ![[ShadowData sharedInstance] enabled_secure: "noads"];
+    if([[ShadowData sharedInstance] enabled_secure: "noads"]){
+        return FALSE;
+    }
+    return TRUE;
 }
 
 

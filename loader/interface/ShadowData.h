@@ -43,7 +43,7 @@
         @[@"savehax", @"Keep Snaps In Chat", @"Delivered and open snaps will temporarily be saved in chat.", @TRUE],
         @[@"seenbutton", @"Enable Mark as Seen", @"Use a button to mark snaps as seen", @FALSE],
         @[@"storyghost", @"Story Ghost", @"View stories anonymously.", @FALSE],
-        @[@"ads", @"Disable Ads", @"Block all advertisements", @FALSE],
+        @[@"noads", @"Disable Ads", @"Block all advertisements", @FALSE],
         @[@"snapghost", @"Snap Ghost", @"Snaps and messages will appear unviewed/unopened.", @FALSE],
         @[@"customtitle",@"Custom Title", @"Leave blank to use default",@FALSE,@""],
         @[@"spoofviews",@"Spoof Story Views", @"Leave blank for normal.",@FALSE,@"1034789"],
