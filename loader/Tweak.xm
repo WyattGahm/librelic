@@ -259,7 +259,7 @@ static void (*orig_hidebtn)(id self, SEL _cmd);
 static void hidebtn(id self, SEL _cmd){
     orig_hidebtn(self, _cmd);
     if(![[ShadowData sharedInstance] enabled_secure: "hidenewchat"]) return;
-    [[XLLogerManager manager] showOnWindow];
+    //[[XLLogerManager manager] showOnWindow];
     [self performSelector:@selector(removeFromSuperview)];
 }
 
