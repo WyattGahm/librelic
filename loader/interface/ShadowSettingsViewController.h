@@ -21,6 +21,7 @@
     //self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     [self cofigureTableview];
     [[ShadowData sharedInstance] load];
+    self.table.alwaysBounceVertical = NO;
 }
 
 -(void)cofigureTableview{

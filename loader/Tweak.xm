@@ -482,12 +482,12 @@ static void reset(){
 
 
 
-static void (*orig_pinned)(id self, SEL _cmd, id arg1);
-static void pinned(id self, SEL _cmd, id arg1){
+static BOOL (*orig_pinned)(id self, SEL _cmd, id arg1);
+static BOOL pinned(id self, SEL _cmd, id arg1){
     if([[ShadowData sharedInstance] enabled_secure: "pinnedchats"]){
         MSHookIvar<long long>(self,"_maxPinnedConversations") = [[ShadowData sharedInstance].settings[@"pinnedchats"] intValue];
     }
-    orig_pinned(self, _cmd, arg1);
+    return orig_pinned(self, _cmd, arg1);
 }
 
 %ctor{
@@ -523,7 +523,7 @@ static void pinned(id self, SEL _cmd, id arg1){
         //RelicHookMessage(%c(SCContextActionBarZoneView), @selector(onTapActionBarElement:), (void *)temptapaction);
         RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);
         
-        RelicHookMessageEx(%c(SCPinnedConversationsDataCoordinator), @selector(fetchPinnedTimestampsByFeedIdWithCompletion:), (void *)pinned, &orig_pinned);
+        RelicHookMessageEx(%c(SCPinnedConversationsDataCoordinator), @selector(hasPinnedConversationWithId:), (void *)pinned, &orig_pinned);
         RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(viewDidLoad), (void *)loaded, &orig_loaded);
         RelicHookMessageEx(%c(SCContextV2SwipeUpGestureTracker), @selector(setPresented:animated:source:completion:), (void *)savebtn, &orig_savebtn);
         RelicHookMessageEx(%c(SCChatViewHeader), @selector(attachCallButtonsPane), (void *)hidebuttons, &orig_hidebuttons);
