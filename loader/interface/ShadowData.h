@@ -18,8 +18,10 @@
 @property (strong, nonatomic) NSDictionary *server;
 @property (strong, nonatomic) NSMutableDictionary *story;
 @property (strong, nonatomic) NSString *pagename;
+@property BOOL seen;
 -(void)save;
 -(id)load;
+-(void)markseen;
 -(BOOL)enabled:(NSString *) key;
 +(BOOL)isFirst;
 -(void)disable:(NSString *)key;
@@ -39,14 +41,18 @@
     self.prefs = [ShadowSetting makeSettings:@[
         @[@"screenshot", @"Screenshot Supression", @"Screenshotting will no longer send a notification.", @TRUE],
         @[@"savehax", @"Keep Snaps In Chat", @"Delivered and open snaps will temporarily be saved in chat.", @TRUE],
+        @[@"seenbutton", @"Enable Mark as Seen", @"Use a button to mark snaps as seen", @FALSE],
         @[@"storyghost", @"Story Ghost", @"View stories anonymously.", @FALSE],
+        @[@"ads", @"Disable Ads", @"Block all advertisements", @FALSE],
         @[@"snapghost", @"Snap Ghost", @"Snaps and messages will appear unviewed/unopened.", @FALSE],
         @[@"folder",@"Autosave Folder", @"Leave blank to not save.",@FALSE,@"/var/mobile/Documents/snaps/"],
         @[@"spoofviews",@"Spoof Story Views", @"Leave blank for normal.",@FALSE,@"1034789"],
         @[@"spoofsc",@"Spoof Story Screenshots", @"Leave blank for normal.",@FALSE,@"871239"],
-        @[@"save", @"Save To Camera Roll", @"Tap and hold while viewing a snap to bring up the UI press \"Save Snap🤪\".",@TRUE],
+        @[@"save", @"Save To Camera Roll", @"Tap and hold while viewing a snap to bring up the UI press \"Save Snap Shadow\".",@TRUE],
+        @[@"subtitle", @"Hide Subtitle", @"Hide the subtitle containing an MOTD or something from the devs",@FALSE],
         @[@"upload", @"Upload From Camera Roll", @"Press the upload button to select an image and then press the button to take a picture.", @TRUE],
         @[@"nocall", @"Hide Call Buttons", @"Hide the call buttons on recent UI versions.",@TRUE],
+        @[@"savebutton", @"Use Save Button", @"This option will provide a save button to replace the menu option.", @TRUE],
         @[@"callconfirmvideo", @"Video Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
         @[@"callconfirmaudio", @"Audio Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
         @[@"hidenewchat", @"Hide New Chat Button", @"Hide the blue button on the bottom on recent UI versions.",@TRUE],
@@ -54,10 +60,12 @@
         @[@"friendmoji", @"Hide Friendmoji", @"Hide the \"Friendmojis\" next to people's names (requires pull-refresh).", @FALSE],
         @[@"scramble", @"Randomize Best Friends", @"Randomly change the order off the best friends list.", @FALSE],
         @[@"rgb", @"Cool RGB Animation", @"Makes the shadow header RBG (think chromahomebarX).", @TRUE],
+        @[@"notitle", @"Keep Normal Title", @"Enable this to hide the \"Shadow X\" label", @FALSE],
         @[@"hotdog", @"Download Hotdog Images", @"Disabling this wont change anything, downloading hotdog images regardless.", @TRUE],
     ]];
     [self syncSettings];
     self.location = [NSMutableDictionary new];
+    self.seen = FALSE;
     return self;
 }
 //NSCoding
@@ -90,6 +98,10 @@
 }
 - (CLLocation *)getLocation{
     return [[CLLocation alloc]initWithLatitude:[self.location[@"latitude"] boolValue] longitude : [self.location[@"longitude"] boolValue] ];
+}
+
+-(void)markseen{
+    self.seen = TRUE;
 }
 
 //reinit

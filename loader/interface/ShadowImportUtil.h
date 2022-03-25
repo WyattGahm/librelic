@@ -63,25 +63,14 @@ typedef void(^URLHandler)(NSURL * url);
     }
 }
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
-    /*
-    //https://stackoverflow.com/a/10531752
-    NSString *mediaType = [info objectForKey: UIImagePickerControllerMediaType];
-    if CFStringCompare ((__bridge CFStringRef) mediaType, kUTTypeMovie, 0) == kCFCompareEqualTo) {//[mediaType isEqualToString:(__bridge NSString *)kUTTypeMovie]
-        NSURL *videoUrl=(NSURL*)[info objectForKey:UIImagePickerControllerMediaURL];
-        [self mediaHandler:videoUrl];
+    if([info[UIImagePickerControllerMediaType] isEqualToString: @"public.movie"]){
+        self.videoHandler(info[UIImagePickerControllerMediaURL]);
     }else{
-        [self mediaHandler:info[UIImagePickerControllerOriginalImage]];
+        self.imageHandler(info[UIImagePickerControllerImageURL]);
     }
-    
-    
-    
-    
-    importedPhoto = info[UIImagePickerControllerOriginalImage];
-     */
-    [self mediaHandler:info[UIImagePickerControllerMediaURL] alt:info[UIImagePickerControllerOriginalImage]];
     [vc dismissViewControllerAnimated:YES completion:nil];
-     
 }
+
 -(UIViewController * )topVC{
     UIViewController *ret = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
     while (ret.presentedViewController) ret = ret.presentedViewController;
