@@ -93,54 +93,38 @@ static void snapghost(id self, SEL _cmd, long long arg1, id arg2, long long arg3
 }
 
 //no orig, were adding this
-static void save(id self, SEL _cmd){
-    NSArray* mediaArray = [self shareableMedias];
-    //the mediaArray has 1 object, meaning most likely it is image
-    if (mediaArray.count == 1){
-      SCOperaShareableMedia *mediaObject = (SCOperaShareableMedia *)[mediaArray firstObject];
-      //double check that the mediaObject is a image mediaType
-      if (mediaObject.mediaType == 0){
-        UIImage *snapImage = [mediaObject image];
-        UIImageWriteToSavedPhotosAlbum(snapImage, nil, nil, nil);
+static void save(id self, SEL _cmd) {
+  NSArray *mediaArray = [self shareableMedias];
+  if (mediaArray.count == 1) {
+    SCOperaShareableMedia *mediaObject = (SCOperaShareableMedia *)[mediaArray firstObject];
+    if (mediaObject.mediaType == 0) {
+      UIImage *snapImage = [mediaObject image];
+      UIImageWriteToSavedPhotosAlbum(snapImage, nil, nil, nil);
+      [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
+    } else {
+      [%c(SCStatusBarOverlayLabelWindow) showErrorWithText:@"Uh oh! Failed to save this snap. 😢" backgroundColor:[UIColor colorWithRed:255/255.0 green:0/255.0 blue:0/255.0 alpha:1]];
+    }
+  } else {
+    for (SCOperaShareableMedia *mediaObject in mediaArray) {
+      if ((mediaObject.mediaType == 1) && (mediaObject.videoAsset) && (mediaObject.videoURL == nil)) {
+        AVURLAsset *asset = (AVURLAsset *)(mediaObject.videoAsset);
+        NSURL *assetURL = asset.URL;
+        NSURL *documentsURL = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] firstObject];
+        NSURL *tempVideoFileURL = [documentsURL URLByAppendingPathComponent:[assetURL lastPathComponent]];
+
+        AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:asset presetName:AVAssetExportPresetHighestQuality];
+        exportSession.outputURL = tempVideoFileURL;
+        exportSession.outputFileType = AVFileTypeQuickTimeMovie;
+        [exportSession exportAsynchronouslyWithCompletionHandler:^{
+          UISaveVideoAtPathToSavedPhotosAlbum(tempVideoFileURL.path, nil, nil, nil);
+          [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
+        }];
+      } else if (mediaObject.mediaType == 1 && mediaObject.videoURL && mediaObject.videoAsset == nil) {
+        UISaveVideoAtPathToSavedPhotosAlbum(mediaObject.videoURL.path, nil, nil, nil);
         [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
       }
-      //add error checking
-      else{
-        [%c(SCStatusBarOverlayLabelWindow) showErrorWithText:@"Uh oh! Failed to save this snap. 😢" backgroundColor:[UIColor colorWithRed:255/255.0 green:0/255.0 blue:0/255.0 alpha:1]];
-      }
     }
-    //the mediaArray has more than one object, meaning most likely it is a video
-    else{
-      //enumerate through the array to check which object contains the video asset
-      for (SCOperaShareableMedia *mediaObject in mediaArray){
-        //check if mediaObject is video mediaType and it's videoAsset is not null
-        if ((mediaObject.mediaType == 1) && (mediaObject.videoAsset) && (mediaObject.videoURL == nil)){
-          AVURLAsset *asset = (AVURLAsset *)(mediaObject.videoAsset);
-          NSURL *assetURL = asset.URL;
-          //TODO: change the tempVideoFile output location
-          NSURL *documentsURL = [[[NSFileManager defaultManager]
-              URLsForDirectory:NSDocumentDirectory
-                     inDomains:NSUserDomainMask] firstObject];
-          NSURL *tempVideoFileURL = [documentsURL URLByAppendingPathComponent:[assetURL lastPathComponent]];
-
-          AVAssetExportSession *exportSession = [[AVAssetExportSession alloc]
-            initWithAsset:asset
-               presetName:AVAssetExportPresetHighestQuality];
-          exportSession.outputURL = tempVideoFileURL;
-          exportSession.outputFileType = AVFileTypeQuickTimeMovie;
-          [exportSession exportAsynchronouslyWithCompletionHandler:^{
-            UISaveVideoAtPathToSavedPhotosAlbum(tempVideoFileURL.path,nil,nil,nil);
-            [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
-              [[NSFileManager defaultManager] removeItemAtURL: tempVideoFileURL error:nil];
-          }];
-        }
-        //did not find a video asset but we did find a cached video url
-        else if(mediaObject.mediaType == 1 && mediaObject.videoURL && mediaObject.videoAsset == nil){
-          UISaveVideoAtPathToSavedPhotosAlbum(mediaObject.videoURL.path,nil,nil,nil);
-          [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
-        }
-      }
-    }
+  }
 }
 /*
 static void saveauto(id self,NSString * folder){
@@ -221,7 +205,7 @@ static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4)
     if(stack.arrangedSubviews.count > 0) [stack addArrangedSubview: div];
     SIGActionSheetCell *newOption = [(SIGActionSheetCell *)[%c(SIGActionSheetCell) optionCellWithText:@""] initWithStyle:0];
 
-    newOption.titleText = @"Save Snap Shadow";
+    newOption.titleText = @"Save to Camera Roll 📷";
     //figure out internal way fo using selectors instead of gesture recog
     /* [newOption _addTarget:self action:@selector(saveSnap)]; */
     [newOption setTrailingAccessoryView:[[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"arrow.down.doc.fill"]]];
@@ -272,7 +256,6 @@ static void markheader(id self, SEL _cmd, NSUInteger arg1){
         RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)label];
         [effect resume];
     }
-    
 }
 
 static void (*orig_loaded2)(id self, SEL _cmd);
@@ -334,7 +317,6 @@ static void loaded(id self, SEL _cmd){
 //new, so no orig
 static void uploadhandler(id self, SEL _cmd){
     SCMainCameraViewController *cam = [((UIViewController*)self).childViewControllers firstObject];
-    NSLog(@"cam: %@", cam);
     [[ShadowImportUtil new]pickMediaWithImageHandler:^(NSURL *url){
         [cam _handleDeepLinkShareToPreviewWithImageFile:url];
         [cam performSelector: @selector(captureStillImage)];
@@ -476,9 +458,7 @@ static void reset(){
         [alert dismissViewControllerAnimated:YES completion:nil];
     }];
     
-    
     [alert _setActions: @[back,call]];
-    
     UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
     while (topVC.presentedViewController) topVC = topVC.presentedViewController;
     [topVC presentViewController: alert animated: true completion:nil];
@@ -503,10 +483,9 @@ static BOOL pinned(id self, SEL _cmd, id arg1){
      */
     //[[XLLogerManager manager] prepare];
     //[[XLLogerManager manager] showOnWindow];
-    if( [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.toyopagroup.picaboo"]) NSLog(@"IGNORE THIS UNLESS YOURE HOOKING UIKIT");
+    if( [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.toyopagroup.picaboo"]);
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        NSLog(@"[Shadow X] Initializing Hooks...");
         RelicHookMessageEx(%c(SIGHeaderTitle), @selector(_titleTapped:), (void *)tap, &orig_tap);
         RelicHookMessageEx(%c(SCFriendsFeedCreateButton), @selector(resetCreateButton), (void *)hidebtn, &orig_hidebtn);
         RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isSaved), (void *)savehax, &orig_savehax);
@@ -543,12 +522,15 @@ static BOOL pinned(id self, SEL _cmd, id arg1){
          RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowUserStoriesAds), (void *)noads);
          RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowAds), (void *)noads);
     });
-    
-    NSLog(@"[Shadow X] Hooks Initialized.");
-    NSLog(@"[Shadow X] Shadow X has been loaded");
-    NSLog(@"[Shadow X] Contact no5up#9993 or Kanji#2222 with important information");
+    NSLog(@"[Shadow X + Relic] Hooks Initialized and Tweak Loaded");
     [[ShadowData sharedInstance] load];
 }
+
+%dtor {
+    [[ShadowData sharedInstance] save];
+    NSLog(@"[Shadow X + Relic] Hooks Unloaded (App Closed)");
+}
+
 /*
 %hook SCNMessagingMessage
 - (BOOL)canDelete{
@@ -604,15 +586,6 @@ static BOOL pinned(id self, SEL _cmd, id arg1){
     return NO;
 }
 %end
-
-
-%dtor{
-    [[ShadowData sharedInstance] save];
-    NSLog(@"[Shadow X] Shadow X has been unloaded");
-}
-
-
-
 
 static BOOL (*orig_savehax)(id self, SEL _cmd);
 BOOL savehax(id self, SEL _cmd){

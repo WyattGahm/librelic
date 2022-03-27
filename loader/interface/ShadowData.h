@@ -94,7 +94,6 @@
     dispatch_once(&onceToken, ^{
         sharedInstance = [[ShadowData alloc] init];
         sharedInstance.server = [ShadowServerData dictionaryForURL:[NSURL URLWithString:@"https://no5up.dev/data.json"]];
-        NSLog(@"server data: %@",sharedInstance.server);
     });
     return sharedInstance;
 }

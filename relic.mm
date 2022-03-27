@@ -154,7 +154,6 @@ __attribute__((__naked__)) static void replacementObjc_msgSend() {
 __attribute__((constructor)) static void inject() {
     MSHookFunction((void*)&objc_msgSend, (void *)&replacementObjc_msgSend, (void **)&orig_objc_msgSend);
     hookMap = HMCreate(&pointerEquality, &pointerHash);
-    NSLog(@"[RELIC] Done loading!");
 }
 
 

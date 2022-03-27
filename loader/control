@@ -4,6 +4,6 @@ Depends: mobilesubstrate, com.wyattgahm.librelic (>= 2.0.0)
 Version: 1.0.1
 Architecture: iphoneos-arm
 Description: A testing package for librelic2. NOT FOR USE BY NON-DEV
-Maintainer: Wyatt Gahm
-Author: Wyatt Gahm
+Maintainer: Wyatt Gahm + Kanji
+Author: Wyatt Gahm + Kanji
 Section: Development

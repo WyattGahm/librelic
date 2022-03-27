@@ -4,6 +4,6 @@ Depends: mobilesubstrate (>= 0.9.5.000)
 Version: 2.1.0
 Architecture: iphoneos-arm
 Description: library for Snapchat hooking
-Maintainer: Wyatt Gahm
-Author: Wyatt Gahm
+Maintainer: Wyatt Gahm + Kanji
+Author: Wyatt Gahm + Kanji
 Section: Development
