@@ -84,10 +84,6 @@
     return self;//self initwith blahhhhhh
 }
 
-- (BOOL)shouldChangeHeader{
-    return [@[@"MESSAGING/FEED",@"CAMERA/VIEW_FINDER",@"DISCOVER_FEED"] containsObject: self.pagename];
-}
-
 + (instancetype)sharedInstance{
     static ShadowData *sharedInstance = nil;
     static dispatch_once_t onceToken;
@@ -97,12 +93,9 @@
     });
     return sharedInstance;
 }
+
 - (CLLocation *)getLocation{
     return [[CLLocation alloc]initWithLatitude:[self.location[@"latitude"] boolValue] longitude : [self.location[@"longitude"] boolValue] ];
-}
-
--(void)markseen{
-    self.seen = TRUE;
 }
 
 //reinit
