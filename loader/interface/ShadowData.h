@@ -7,6 +7,7 @@
 #import "ShadowSetting.h"
 #import "ShadowServerData.h"
 
+
 #define LOCATION @"location"
 #define SETTINGS @"settings"
 #define FILE @"shadowx.plist"
@@ -18,10 +19,10 @@
 @property (strong, nonatomic) NSDictionary *server;
 @property (strong, nonatomic) NSMutableDictionary *story;
 @property (strong, nonatomic) NSString *pagename;
+@property (strong, nonatomic) id currentopera;
 @property BOOL seen;
 -(void)save;
 -(id)load;
--(void)markseen;
 -(BOOL)enabled:(NSString *) key;
 +(BOOL)isFirst;
 -(void)disable:(NSString *)key;
@@ -53,6 +54,7 @@
         @[@"upload", @"Upload From Camera Roll", @"Press the upload button to select an image and then press the button to take a picture.", @TRUE],
         @[@"nocall", @"Hide Call Buttons", @"Hide the call buttons on recent UI versions.",@TRUE],
         @[@"pinnedchats",@"Override Pin Limit", @"Enter a number for the chat pin limit",@TRUE,@"3"],
+        @[@"closeseen", @"Close On Marked", @"Close the snap when marked as seen. Alternatively, pressing the button again will mark as unseen.", @FALSE],
         @[@"savebutton", @"Use Save Button", @"This option will provide a save button to replace the menu option.", @TRUE],
         @[@"callconfirmvideo", @"Video Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
         @[@"callconfirmaudio", @"Audio Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],

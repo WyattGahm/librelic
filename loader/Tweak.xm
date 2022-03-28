@@ -64,6 +64,9 @@ SIGActionSheetCell * saveCell;
     if([ShadowData sharedInstance].seen == FALSE){
         [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Marking as SEEN!" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:1.0]];
         [ShadowData sharedInstance].seen = TRUE;
+        if([[ShadowData sharedInstance] enabled_secure: "closeseen"]){
+            [(SCOperaPageViewController *)[ShadowData sharedInstance].currentopera autoAdvanceTimerDidFire];
+        }
     }else{
         [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Marking as UNSEEN!" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:1.0]];
         [ShadowData sharedInstance].seen = FALSE;
@@ -287,10 +290,11 @@ static void loaded2(id self, SEL _cmd){
         UIButton * seenButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
         seenButton.imageEdgeInsets = UIEdgeInsetsMake(-5, -5, -5, -5);
         [seenButton setImage: seenIcon forState:UIControlStateNormal];
-        [seenButton addTarget:ShadowHelper action:@selector(markSnap) forControlEvents:UIControlEventTouchUpInside];
+        [seenButton addTarget:%c(ShadowHelper) action:@selector(markSnap) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.15; //tweak me? dynamic maybe?
         double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
         seenButton.center = CGPointMake(x, y);
+        [ShadowData sharedInstance].currentopera = self;
         [((UIViewController*)self).view addSubview: seenButton];
     }
     if([[ShadowData sharedInstance] enabled_secure: "savebutton"]){
