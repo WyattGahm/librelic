@@ -51,6 +51,7 @@
         @[@"spoofsc",@"Spoof Story Screenshots", @"Leave blank for normal.",@FALSE,@"871239"],
         @[@"save", @"Save To Camera Roll", @"Tap and hold while viewing a snap to bring up the UI press \"Save Snap Shadow\".",@TRUE],
         @[@"subtitle", @"Hide Subtitle", @"Hide the subtitle containing an MOTD or something from the devs",@FALSE],
+        @[@"eastereggs", @"Enable Easter Eggs", @"Enable some small and potentially buggy secret changes.",@TRUE],
         @[@"upload", @"Upload From Camera Roll", @"Press the upload button to select an image and then press the button to take a picture.", @TRUE],
         @[@"nocall", @"Hide Call Buttons", @"Hide the call buttons on recent UI versions.",@TRUE],
         @[@"pinnedchats",@"Override Pin Limit", @"Enter a number for the chat pin limit",@TRUE,@"3"],

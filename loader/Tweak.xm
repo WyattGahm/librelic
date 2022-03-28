@@ -44,6 +44,7 @@
 #import "SIGAlertDialogAction.h"
 #import "SCNMessagingUUID.h"
 #import "SCStatusBarOverlayLabelWindow.h"
+#import "SIGPullToRefreshGhostView.h"
 
 #import "util.h"
 #import "ShadowData.h"
@@ -54,6 +55,7 @@
 #import "XLLogerManager.h"
 
 SIGActionSheetCell * saveCell;
+UIImage * imagesync;
 
 @interface ShadowHelper: NSObject
 +(void)markSnap;
@@ -492,6 +494,19 @@ static BOOL pinned(id self, SEL _cmd, id arg1){
     return orig_pinned(self, _cmd, arg1);
 }
 
+
+
+
+static BOOL (*orig_updateghost)(id self, SEL _cmd);
+static BOOL updateghost(id self, SEL _cmd){
+    if([[ShadowData sharedInstance] enabled_secure: "eastereggs"]){
+        UIImageView * normal = MSHookIvar<UIImageView *>(self, "_defaultBody");
+        normal.image = imagesync;
+        NSLog(@"PERFORMING IMAGE SWAP");
+    }
+    return TRUE;`//orig_updateghost(self, _cmd);
+}
+
 %ctor{
     /*
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){
@@ -521,6 +536,8 @@ static BOOL pinned(id self, SEL _cmd, id arg1){
         RelicHookMessage(%c(ShadowSettingsViewController), @selector(reset), (void *)reset);
         RelicHookMessage(%c(SCSwipeViewContainerViewController), @selector(upload), (void *)uploadhandler);
         
+        RelicHookMessageEx(%c(SIGPullToRefreshGhostView), @selector(rainbow), (void *)updateghost, &orig_updateghost);
+        
         //RelicHookMessage(%c(SCContextActionBarZoneView), @selector(onTapActionBarElement:), (void *)temptapaction);
         RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);
         
@@ -542,6 +559,8 @@ static BOOL pinned(id self, SEL _cmd, id arg1){
     });
     NSLog(@"[Shadow X + Relic] Hooks Initialized and Tweak Loaded");
     [[ShadowData sharedInstance] load];
+    NSData * imageData = [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString: @"https://i.imgur.com/C8y2teK.jpg"]];
+    imagesync = [UIImage imageWithData: imageData];
 }
 
 %dtor {
