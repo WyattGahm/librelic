@@ -42,6 +42,7 @@
     self.prefs = [ShadowSetting makeSettings:@[
         @[@"screenshot", @"Screenshot Supression", @"Screenshotting will no longer send a notification.", @TRUE],
         @[@"savehax", @"Keep Snaps In Chat", @"Delivered and open snaps will temporarily be saved in chat.", @TRUE],
+        @[@"darkmode", @"Shadow Dark Mode", @"Use dark mode in this settings menu", @TRUE],
         @[@"seenbutton", @"Enable Mark as Seen", @"Use a button to mark snaps as seen", @FALSE],
         @[@"storyghost", @"Story Ghost", @"View stories anonymously.", @FALSE],
         @[@"noads", @"Disable Ads", @"Block all advertisements", @FALSE],

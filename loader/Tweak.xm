@@ -504,7 +504,7 @@ static BOOL updateghost(id self, SEL _cmd){
         normal.image = imagesync;
         NSLog(@"PERFORMING IMAGE SWAP");
     }
-    return TRUE;`//orig_updateghost(self, _cmd);
+    return TRUE;//orig_updateghost(self, _cmd);
 }
 
 %ctor{

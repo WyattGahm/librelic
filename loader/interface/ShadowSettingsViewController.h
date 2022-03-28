@@ -10,10 +10,18 @@
 @implementation ShadowSettingsViewController
 
 -(UITraitCollection *)traitCollection {
-    NSArray *traits = @[[UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleDark],
-                        [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone],
-    ];
-    return [UITraitCollection traitCollectionWithTraitsFromCollections:traits];
+    if([[ShadowData sharedInstance] enabled_secure: "darkmode"]){
+        NSArray *traits = @[[UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleDark],
+                            [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone],
+        ];
+        return [UITraitCollection traitCollectionWithTraitsFromCollections:traits];
+    }else{
+        NSArray *traits = @[[UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleLight],
+                            [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone],
+        ];
+        return [UITraitCollection traitCollectionWithTraitsFromCollections:traits];
+    }
+    
 }
 
 -(void)viewDidLoad {
