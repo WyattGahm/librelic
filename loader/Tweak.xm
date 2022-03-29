@@ -241,39 +241,40 @@ static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4)
 static void (*orig_markheader)(id self, SEL _cmd, NSUInteger arg1);
 static void markheader(id self, SEL _cmd, NSUInteger arg1){
     orig_markheader(self, _cmd, arg1);
-    if(![[ShadowData sharedInstance] enabled_secure: "notitle"]){
-        if([[ShadowData sharedInstance] enabled: @"customtitle"]){
-            ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = [ShadowData sharedInstance].settings[@"customtitle"];
-        }else{
-            ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = @"Shadow X";
+    @try{
+        if(![[ShadowData sharedInstance] enabled_secure: "notitle"]){
+            if([[ShadowData sharedInstance] enabled: @"customtitle"]){
+                ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = [ShadowData sharedInstance].settings[@"customtitle"];
+            }else{
+                ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = @"Shadow X";
+            }
         }
-    }
-    
-    SIGHeaderTitle *headerTitle = (SIGHeaderTitle *)[[[[(UIView *)self subviews] lastObject].subviews lastObject].subviews firstObject];
-    UITapGestureRecognizer *singleFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:headerTitle action:@selector(_titleTapped:)];
-    [headerTitle addGestureRecognizer:singleFingerTap];
-    SIGLabel * label = [headerTitle.subviews firstObject];
-    
-    if(![[label class] isEqual: %c(SIGLabel)])return;
-    SIGLabel *subtitle = [headerTitle.subviews lastObject];
-    //[subtitle addGestureRecognizer:singleFingerTap];
-    
-    if(![[ShadowData sharedInstance] enabled_secure: "subtitle"]){
-        [subtitle setHidden: NO];
-        id user = [%c(User) performSelector:@selector(createUser)];
-        NSString *dispname = (NSString *)[user performSelector:@selector(displayName_LEGACY_DO_NOT_USE)];
-        subtitle.text = [[ShadowData sharedInstance].server[@"subtext"] stringByReplacingOccurrencesOfString:@"%NAME%" withString: [[dispname componentsSeparatedByString:@" "] firstObject]];
-        NSLayoutConstraint *horiz = [NSLayoutConstraint constraintWithItem:subtitle attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:headerTitle attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0];
-        NSLayoutConstraint *vert = [NSLayoutConstraint constraintWithItem:subtitle attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:headerTitle attribute:NSLayoutAttributeCenterY multiplier:2.0 constant:-1];
-        [headerTitle addConstraint:horiz];
-        [headerTitle addConstraint:vert];
-    }else{
-        subtitle.text = @"";
-    }
-    
-    if([[ShadowData sharedInstance] enabled_secure: "rgb"]){
-        RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)label];
-        [effect resume];
+        SIGHeaderTitle *headerTitle = (SIGHeaderTitle *)[[[[(UIView *)self subviews] lastObject].subviews lastObject].subviews firstObject];
+        UITapGestureRecognizer *singleFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:headerTitle action:@selector(_titleTapped:)];
+        SIGLabel * label = [headerTitle.subviews firstObject];
+        [label addGestureRecognizer:singleFingerTap];
+        if(![[label class] isEqual: %c(SIGLabel)])return;
+        SIGLabel *subtitle = headerTitle.subviews[1];
+        for(int i = 2; i < headerTitle.subviews.count; i++) [headerTitle.subviews[i] removeFromSuperview]; //remove indicators
+        if(![[ShadowData sharedInstance] enabled_secure: "subtitle"]){
+            [subtitle setHidden: NO];
+            id user = [%c(User) performSelector:@selector(createUser)];
+            NSString *dispname = (NSString *)[user performSelector:@selector(displayName_LEGACY_DO_NOT_USE)];
+            subtitle.text = [[ShadowData sharedInstance].server[@"subtext"] stringByReplacingOccurrencesOfString:@"%NAME%" withString: [[dispname componentsSeparatedByString:@" "] firstObject]];
+            NSLayoutConstraint *horiz = [NSLayoutConstraint constraintWithItem:subtitle attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:headerTitle attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0];
+            NSLayoutConstraint *vert = [NSLayoutConstraint constraintWithItem:subtitle attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:headerTitle attribute:NSLayoutAttributeCenterY multiplier:2.0 constant:-1];
+            [headerTitle addConstraint:horiz];
+            [headerTitle addConstraint:vert];
+        }else{
+            subtitle.text = @"";
+        }
+        
+        if([[ShadowData sharedInstance] enabled_secure: "rgb"]){
+            RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)label];
+            [effect resume];
+        }
+    } @catch(id anException){
+        //debug stuff
     }
 }
 
@@ -507,6 +508,23 @@ static BOOL updateghost(id self, SEL _cmd){
     return TRUE;//orig_updateghost(self, _cmd);
 }
 
+static void (*orig_settingstext)(id self, SEL _cmd);
+static void settingstext(id self, SEL _cmd){
+    orig_settingstext(self, _cmd);
+    //NSLog(@"swifty: %@, I am %@",%c(SCSettingsImplementation.SCSettingsViewController),[self class]);
+    
+    UITableView * table = MSHookIvar<UITableView *>(self, "_scrollView");//swift????
+    if(!table) return;
+    if(![table respondsToSelector:@selector(paddedTableFooterView)]) return;
+    UILabel * label = (UILabel *)[table performSelector:@selector(paddedTableFooterView)];
+    if(label.tag != 1){
+        label.text = [[label.text componentsSeparatedByString:@"\n"][0] stringByAppendingString: @"\nShadow X (relicloader) | librelic 2.0"];  //@"\nlibrelic 2\nShadow X (relicloader)"];
+        label.tag = 1;
+    }
+    
+    // -[SCSettingsImplementation.SCSettingsViewController viewDidLoad]
+}
+
 %ctor{
     /*
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){
@@ -531,6 +549,8 @@ static BOOL updateghost(id self, SEL _cmd){
         RelicHookMessageEx(%c(SCUnifiedProfileSquadmojiView), @selector(setViewModel:), (void *)scramblefriends, &orig_scramblefriends);
         RelicHookMessageEx(%c(SCSingleStoryViewingSession), @selector(_markStoryAsViewedWithStorySnap:), (void *)storyghost, &orig_storyghost);
         RelicHookMessageEx(%c(SCNMessagingSnapManager),@selector(onSnapInteraction:conversationId:messageId:callback:), (void *)snapghost, &orig_snapghost);
+        
+        RelicHookMessageEx(%c(SIGScrollViewKeyValueObserver),@selector(_contentOffsetDidChange), (void *)settingstext, &orig_settingstext);
         //new
         RelicHookMessage(%c(SCOperaPageViewController), @selector(saveSnap), (void *)save);
         RelicHookMessage(%c(ShadowSettingsViewController), @selector(reset), (void *)reset);
