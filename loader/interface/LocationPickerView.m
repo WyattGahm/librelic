@@ -7,6 +7,7 @@
 #import <UIKit/UIKit.h>
 #import <MapKit/MapKit.h>
 #import "LocationPickerView.h"
+#import "LocationPickerAdvancedSettingsView.h"
 
 #define GRABBER_HEIGHT 20
 

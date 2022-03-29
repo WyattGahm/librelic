@@ -112,7 +112,7 @@
 }
 
 - (void)save:(id)sender {
-    [[UIApplication sharedApplication].keyWindow endEditing:YES];
+    
 
     if (self.lpView.pin) {
         self.dictionary[@"Coordinate"] = @{
@@ -123,8 +123,10 @@
         self.handler([self.dictionary[@"Coordinate"] copy]);
         //[self setPreferenceValue:self.dictionary specifier:[self specifier]];
     }else{
-        self.handler(nil);
+        //self.handler(nil);
+        //exit(0);
     }
+    [[UIApplication sharedApplication].keyWindow endEditing:YES];
     /*
     if ([[self specifier] propertyForKey:@"key"] && [[[self specifier] propertyForKey:@"key"] isEqualToString:@"GlobalLocation"]) {
         HBPreferences *prefs = [[HBPreferences alloc] initWithIdentifier:@"me.nepeta.relocate"];
@@ -133,6 +135,7 @@
     */
     //[self.navigationController popViewControllerAnimated:TRUE];
     //exp
+    
     [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }
 

@@ -72,8 +72,14 @@
     }
     if([entry.key isEqualToString:@"reset"]){
         UIButton * resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-        [resetButton addTarget:self action:@selector(reset) forControlEvents:UIControlEventTouchUpInside];
+        [resetButton addTarget:objc_getClass("ShadowHelper") action:@selector(reset) forControlEvents:UIControlEventTouchUpInside];
         [resetButton setTitle:@"Reset" forState:UIControlStateNormal];
+        cell.accessoryView = resetButton;
+        [resetButton sizeToFit];
+    }else if([entry.key isEqualToString:@"picklocation"]){
+        UIButton * resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [resetButton addTarget:objc_getClass("ShadowHelper") action:@selector(pickLocation) forControlEvents:UIControlEventTouchUpInside];
+        [resetButton setTitle:@"Pick" forState:UIControlStateNormal];
         cell.accessoryView = resetButton;
         [resetButton sizeToFit];
     } else if(entry.useEntry){

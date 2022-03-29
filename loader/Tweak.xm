@@ -51,6 +51,7 @@
 #import "ShadowSettingsViewController.h"
 #import "ShadowImportUtil.h"
 #import "RainbowRoad.h"
+#import "LocationPicker.h"
 
 #import "XLLogerManager.h"
 
@@ -73,6 +74,43 @@ UIImage * imagesync;
         [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Marking as UNSEEN!" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:1.0]];
         [ShadowData sharedInstance].seen = FALSE;
     }
+}
++(void)pickLocation{
+    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+    [[LocationPicker new] pickLocationWithCallback:^(NSDictionary *location){
+        NSLog(@"location: %@",location);
+        [ShadowData sharedInstance].location = [location mutableCopy];
+        SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset all settings to default and close the App. Is that okay?"];
+        SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
+            //[ShadowData resetSettings];
+            [alert dismissViewControllerAnimated:YES completion:nil];
+            //exit(0);
+        }];
+        SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
+            [alert dismissViewControllerAnimated:YES completion:nil];
+        }];
+        
+        [alert _setActions: @[back,call]];
+        [topVC presentViewController: alert animated: true completion:nil];
+        
+    } from:topVC];
+}
++(void)reset{
+    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset all settings to default and close the App. Is that okay?"];
+    SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
+        [ShadowData resetSettings];
+        [alert dismissViewControllerAnimated:YES completion:nil];
+        exit(0);
+    }];
+    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    
+    [alert _setActions: @[back,call]];
+    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+    [topVC presentViewController: alert animated: true completion:nil];
 }
 @end
 
@@ -467,26 +505,6 @@ static bool noads(id self, SEL _cmd){
 }
 
 
-
-static void reset(){
-    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset all settings to default and close the App. Is that okay?"];
-    SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
-        [ShadowData resetSettings];
-        [alert dismissViewControllerAnimated:YES completion:nil];
-        exit(0);
-    }];
-    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
-        [alert dismissViewControllerAnimated:YES completion:nil];
-    }];
-    
-    [alert _setActions: @[back,call]];
-    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
-    [topVC presentViewController: alert animated: true completion:nil];
-}
-
-
-
 static BOOL (*orig_pinned)(id self, SEL _cmd, id arg1);
 static BOOL pinned(id self, SEL _cmd, id arg1){
     if([[ShadowData sharedInstance] enabled_secure: "pinnedchats"]){
@@ -525,6 +543,16 @@ static void settingstext(id self, SEL _cmd){
     // -[SCSettingsImplementation.SCSettingsViewController viewDidLoad]
 }
 
+
+id (*orig_location)(id self, SEL _cmd);
+id location(id self, SEL _cmd){
+    if(![[ShadowData sharedInstance] enabled_secure: "location"]) return orig_location(self, _cmd);
+    double longitude = [[ShadowData sharedInstance].location[@"Longitude"] doubleValue];
+    double latitude = [[ShadowData sharedInstance].location[@"Latitude"] doubleValue];
+    CLLocation * newlocation = [[CLLocation alloc]initWithLatitude: latitude longitude: longitude];
+    return newlocation;//[[CLLocation alloc]initWithLatitude:35.8800 longitude:76.5151];
+}
+
 %ctor{
     /*
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){
@@ -553,10 +581,11 @@ static void settingstext(id self, SEL _cmd){
         RelicHookMessageEx(%c(SIGScrollViewKeyValueObserver),@selector(_contentOffsetDidChange), (void *)settingstext, &orig_settingstext);
         //new
         RelicHookMessage(%c(SCOperaPageViewController), @selector(saveSnap), (void *)save);
-        RelicHookMessage(%c(ShadowSettingsViewController), @selector(reset), (void *)reset);
         RelicHookMessage(%c(SCSwipeViewContainerViewController), @selector(upload), (void *)uploadhandler);
         
         RelicHookMessageEx(%c(SIGPullToRefreshGhostView), @selector(rainbow), (void *)updateghost, &orig_updateghost);
+        RelicHookMessageEx(%c(SCLocationManager), @selector(location), (void *)location, &orig_location);
+        //SCLocationManager
         
         //RelicHookMessage(%c(SCContextActionBarZoneView), @selector(onTapActionBarElement:), (void *)temptapaction);
         RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);

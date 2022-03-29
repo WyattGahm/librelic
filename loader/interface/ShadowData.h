@@ -46,6 +46,7 @@
         @[@"seenbutton", @"Enable Mark as Seen", @"Use a button to mark snaps as seen", @FALSE],
         @[@"storyghost", @"Story Ghost", @"View stories anonymously.", @FALSE],
         @[@"noads", @"Disable Ads", @"Block all advertisements", @FALSE],
+        @[@"location", @"Spoof Location", @"Use the location selector ar the bottom to change location", @FALSE],
         @[@"snapghost", @"Snap Ghost", @"Snaps and messages will appear unviewed/unopened.", @FALSE],
         @[@"customtitle",@"Custom Title", @"Leave blank to use default",@FALSE,@""],
         @[@"spoofviews",@"Spoof Story Views", @"Leave blank for normal.",@FALSE,@"1034789"],
@@ -68,6 +69,7 @@
         @[@"notitle", @"Keep Normal Title", @"Enable this to hide the \"Shadow X\" label", @FALSE],
         @[@"hotdog", @"Download Hotdog Images", @"Disabling this wont change anything, downloading hotdog images regardless.", @TRUE],
         @[@"reset", @"Reset All Settings", @"Requires closing and opening Snapchat", @FALSE],
+        @[@"picklocation", @"Pick Location", @"Requires enabling \"Spoof Location\"", @FALSE],
     ]];
     [self syncSettings];
     self.location = [NSMutableDictionary new];
