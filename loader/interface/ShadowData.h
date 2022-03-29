@@ -70,6 +70,7 @@
         @[@"hotdog", @"Download Hotdog Images", @"Disabling this wont change anything, downloading hotdog images regardless.", @TRUE],
         @[@"reset", @"Reset All Settings", @"Requires closing and opening Snapchat", @FALSE],
         @[@"picklocation", @"Pick Location", @"Requires enabling \"Spoof Location\"", @FALSE],
+        @[@"debug", @"Open Log", @"Opens a log window for debugging", @FALSE]
     ]];
     [self syncSettings];
     self.location = [NSMutableDictionary new];

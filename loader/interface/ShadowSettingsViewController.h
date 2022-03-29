@@ -82,6 +82,12 @@
         [resetButton setTitle:@"Pick" forState:UIControlStateNormal];
         cell.accessoryView = resetButton;
         [resetButton sizeToFit];
+    }else if([entry.key isEqualToString:@"debug"]){
+        UIButton * resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [resetButton addTarget:objc_getClass("ShadowHelper") action:@selector(debug) forControlEvents:UIControlEventTouchUpInside];
+        [resetButton setTitle:@"Launch" forState:UIControlStateNormal];
+        cell.accessoryView = resetButton;
+        [resetButton sizeToFit];
     } else if(entry.useEntry){
         //UITextField *textField = [[UITextField alloc] initWithFrame:];
         UITextField *textField = [UITextField new];

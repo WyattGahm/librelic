@@ -59,7 +59,6 @@ SIGActionSheetCell * saveCell;
 UIImage * imagesync;
 
 @interface ShadowHelper: NSObject
-+(void)markSnap;
 @end
 
 @implementation ShadowHelper
@@ -74,6 +73,9 @@ UIImage * imagesync;
         [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Marking as UNSEEN!" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:1.0]];
         [ShadowData sharedInstance].seen = FALSE;
     }
+}
++(void)debug{
+    [[XLLogerManager manager] showOnWindow];
 }
 +(void)pickLocation{
     UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
@@ -351,6 +353,7 @@ static void loaded2(id self, SEL _cmd){
     }
 }
 
+
 static void (*orig_loaded)(id self, SEL _cmd);
 static void loaded(id self, SEL _cmd){
     if(![ShadowData isFirst]) {
@@ -359,6 +362,7 @@ static void loaded(id self, SEL _cmd){
         [[ShadowData sharedInstance] save];
     }
     orig_loaded(self, _cmd);
+    
     if(![[ShadowData sharedInstance] enabled_secure: "upload"]) return;
     if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]) return;
     NSString * pathToIcon = [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject].path stringByAppendingPathComponent:@"Composer/resources-private_profile.dir/res/core_button_share.png"];
@@ -560,9 +564,9 @@ id location(id self, SEL _cmd){
         //[[XLLogerManager manager] showOnWindow];
     }];
      */
-    //[[XLLogerManager manager] prepare];
-    //[[XLLogerManager manager] showOnWindow];
-    if( [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.toyopagroup.picaboo"]);
+    [[XLLogerManager manager] prepare];
+    
+    //if( [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.toyopagroup.picaboo"]);
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         RelicHookMessageEx(%c(SIGHeaderTitle), @selector(_titleTapped:), (void *)tap, &orig_tap);
@@ -579,6 +583,7 @@ id location(id self, SEL _cmd){
         RelicHookMessageEx(%c(SCNMessagingSnapManager),@selector(onSnapInteraction:conversationId:messageId:callback:), (void *)snapghost, &orig_snapghost);
         
         RelicHookMessageEx(%c(SIGScrollViewKeyValueObserver),@selector(_contentOffsetDidChange), (void *)settingstext, &orig_settingstext);
+        
         //new
         RelicHookMessage(%c(SCOperaPageViewController), @selector(saveSnap), (void *)save);
         RelicHookMessage(%c(SCSwipeViewContainerViewController), @selector(upload), (void *)uploadhandler);
