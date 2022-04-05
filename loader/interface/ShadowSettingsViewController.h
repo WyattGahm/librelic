@@ -1,14 +1,14 @@
 #include <UIKit/UIKit.h>
 #include "ShadowInformationViewController.h"
 #include "RainbowRoad.h"
-
+#include "ShadowAssets.h"
 
 @interface ShadowSettingsViewController: UIViewController <UITableViewDelegate,UITableViewDataSource,UITextFieldDelegate>
 @property (strong,nonatomic) UITableView *table;
 @end
 
 @implementation ShadowSettingsViewController
-
+#ifndef TWELVE
 -(UITraitCollection *)traitCollection {
     if([[ShadowData sharedInstance] enabled_secure: "darkmode"]){
         NSArray *traits = @[[UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleDark],
@@ -21,8 +21,8 @@
         ];
         return [UITraitCollection traitCollectionWithTraitsFromCollections:traits];
     }
-    
 }
+#endif
 
 -(void)viewDidLoad {
     [super viewDidLoad];
@@ -36,7 +36,9 @@
     self.table = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStylePlain];
     self.table.delegate = self;
     self.table.dataSource = self;
-    self.table.backgroundColor = [UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00];
+    if([[ShadowData sharedInstance] enabled_secure: "darkmode"]){
+        self.table.backgroundColor = [UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00];
+    }
     [self.view addSubview:self.table];
 }
 
@@ -45,7 +47,7 @@
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    return 65;
+    return 60;
 }
 
 
@@ -61,15 +63,48 @@
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     static NSString *cellIdentifier = @"cell";
     UITableViewCell *cell = [self.table dequeueReusableCellWithIdentifier:cellIdentifier];
-    //setting *entry = dataManager.settings[indexPath.row];
-    ShadowSetting *entry = [ShadowData sharedInstance].prefs[indexPath.row];
-    
     if(cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellIdentifier];
         cell.textLabel.font = [UIFont fontWithName:@"AvenirNext-Medium" size:15];
         cell.detailTextLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:12];
-        [cell setBackgroundColor:[UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00]];
+        if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+            [cell setBackgroundColor:[UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00]];
+        }
     }
+    if(indexPath.row == 0){
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"header"];
+        
+        UIImage * header = [ShadowAssets sharedInstance].header;
+        
+        float scaleFactor = 60 / header.size.height;
+        float newHeight = header.size.height * scaleFactor;
+        float newWidth = header.size.width * scaleFactor;
+
+        UIGraphicsBeginImageContext(CGSizeMake(newWidth, newHeight));
+        [header drawInRect:CGRectMake(0, 0, newWidth, newHeight)];
+        UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        header = [header imageWithAlignmentRectInsets:UIEdgeInsetsMake(30, 30, 30, 30)];
+        
+        UIImageView *imageView = [[UIImageView new]initWithImage: header];
+        imageView.contentMode = UIViewContentModeScaleToFill;
+        //imageView.image = header;
+        imageView.layer.cornerRadius = 15;
+        imageView.layer.shadowColor = [UIColor purpleColor].CGColor;
+            imageView.layer.shadowOffset = CGSizeMake(0, 1);
+            imageView.layer.shadowOpacity = 1;
+            imageView.layer.shadowRadius = 1.0;
+        
+        imageView.clipsToBounds = true;
+        
+        cell.backgroundView = imageView;
+        if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+            [cell setBackgroundColor:[UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00]];
+        }
+        cell.userInteractionEnabled = NO;
+        return cell;
+    }
+    ShadowSetting *entry = [ShadowData sharedInstance].prefs[indexPath.row - 1];
     if([entry.key isEqualToString:@"reset"]){
         UIButton * resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         [resetButton addTarget:objc_getClass("ShadowHelper") action:@selector(reset) forControlEvents:UIControlEventTouchUpInside];
@@ -105,8 +140,9 @@
         textField.returnKeyType = UIReturnKeyDone;
         textField.delegate = self;
         textField.tag = indexPath.row;
+#ifndef TWELVE
         textField.backgroundColor = [UIColor clearColor];
-
+#endif
         if([[ShadowData sharedInstance].server[entry.key] isEqualToString:@"Disable"]){
             textField.enabled = FALSE;
             textField.text = @"";
@@ -124,7 +160,7 @@
         UISwitch *switchview = [[UISwitch alloc] initWithFrame:CGRectMake(0,0,0,0)];
         switchview.on = entry.value;
         [switchview addTarget:self action:@selector(switchChanged:) forControlEvents:UIControlEventValueChanged];
-        switchview.tag = indexPath.row;
+        switchview.tag = indexPath.row -1;
         if([[ShadowData sharedInstance].server[entry.key] isEqualToString:@"Disable"]){
             switchview.enabled = FALSE;
             switchview.on = FALSE;
@@ -137,7 +173,6 @@
     cell.detailTextLabel.text = entry.text;
     cell.detailTextLabel.numberOfLines = 0;
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    
     return cell;
 }
 -(BOOL)textFieldShouldEndEditing:(UITextField *)textField{

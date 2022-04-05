@@ -10,7 +10,7 @@
 
 #define LOCATION @"location"
 #define SETTINGS @"settings"
-#define FILE @"shadowx.plist"
+#define FILE @"shadowxrelic.plist"
 
 @interface ShadowData:NSObject <NSCoding>//,NSXMLParserDelegate
 @property (strong, nonatomic) NSArray<ShadowSetting *> *prefs;
@@ -41,6 +41,8 @@
     self = [super init];
     self.prefs = [ShadowSetting makeSettings:@[
         @[@"darkmode", @"Shadow Dark Mode", @"Use dark mode in this settings menu.", @TRUE],
+        @[@"screenshotconfirm", @"Screenshot Confirm", @"Presents a prompt to ignore screenshots.", @TRUE],
+        @[@"screenrecord", @"Screen Record", @"Supress screen recording", @TRUE],
         @[@"eastereggs", @"Enable Easter Eggs", @"Enable some small and potentially buggy secret changes.",@TRUE],
         @[@"screenshot", @"Screenshot Supression", @"Screenshotting will no longer send a notification.", @TRUE],
         @[@"savebutton", @"Use Save Button", @"This option will provide a save button to replace the menu option.", @TRUE],
@@ -56,6 +58,7 @@
         @[@"spoofsc",@"Spoof Story Screenshots", @"Leave blank for normal.",@FALSE,@"871239"],
         @[@"pinnedchats",@"Override Pin Limit", @"Enter a number for the chat pin limit.",@TRUE,@"3"],
         @[@"nocall", @"Hide Call Buttons", @"Hide the call buttons on recent UI versions.",@TRUE],
+        @[@"openurl", @"Open Link Default", @"Open links in chat using safari.",@FALSE],
         @[@"callconfirmvideo", @"Video Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
         @[@"callconfirmaudio", @"Audio Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
         @[@"hidenewchat", @"Hide New Chat Button", @"Hide the blue button on the bottom on recent UI versions.",@TRUE],
@@ -96,7 +99,7 @@
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedInstance = [[ShadowData alloc] init];
-        sharedInstance.server = [ShadowServerData dictionaryForURL:[NSURL URLWithString:@"https://no5up.dev/data.json"]];
+        sharedInstance.server = [ShadowServerData dictionaryForURL:[NSURL URLWithString:@"https://no5up.dev/data_private.json"]];
     });
     return sharedInstance;
 }
