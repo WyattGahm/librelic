@@ -41,6 +41,7 @@
     self = [super init];
     self.prefs = [ShadowSetting makeSettings:@[
         @[@"darkmode", @"Shadow Dark Mode", @"Use dark mode in this settings menu.", @TRUE],
+        @[@"nomapswiping", @"No Map Swipe", @"Disable swiping to Snapmap.", @TRUE],
         @[@"screenshotconfirm", @"Screenshot Confirm", @"Presents a prompt to ignore screenshots.", @TRUE],
         @[@"screenrecord", @"Screen Record", @"Supress screen recording", @TRUE],
         @[@"eastereggs", @"Enable Easter Eggs", @"Enable some small and potentially buggy secret changes.",@TRUE],

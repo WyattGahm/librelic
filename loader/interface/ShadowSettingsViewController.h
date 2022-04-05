@@ -8,28 +8,15 @@
 @end
 
 @implementation ShadowSettingsViewController
-#ifndef TWELVE
--(UITraitCollection *)traitCollection {
-    if([[ShadowData sharedInstance] enabled_secure: "darkmode"]){
-        NSArray *traits = @[[UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleDark],
-                            [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone],
-        ];
-        return [UITraitCollection traitCollectionWithTraitsFromCollections:traits];
-    }else{
-        NSArray *traits = @[[UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleLight],
-                            [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone],
-        ];
-        return [UITraitCollection traitCollectionWithTraitsFromCollections:traits];
-    }
-}
-#endif
 
 -(void)viewDidLoad {
     [super viewDidLoad];
-    //self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     [self cofigureTableview];
     [[ShadowData sharedInstance] load];
     self.table.alwaysBounceVertical = NO;
+    if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+        self.table.separatorColor = [UIColor colorWithRed: .235 green: .235 blue: .263 alpha: 1];
+    }
 }
 
 -(void)cofigureTableview{
@@ -37,7 +24,7 @@
     self.table.delegate = self;
     self.table.dataSource = self;
     if([[ShadowData sharedInstance] enabled_secure: "darkmode"]){
-        self.table.backgroundColor = [UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00];
+        self.table.backgroundColor = [UIColor colorWithRed: 30/255.0 green: 30/255.0 blue: 30/255.0 alpha: 1.00];
     }
     [self.view addSubview:self.table];
 }
@@ -47,12 +34,12 @@
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    return 60;
+    return 65;
 }
 
 
 -(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
-    return 50;
+    return 60;
 }
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
@@ -67,8 +54,11 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellIdentifier];
         cell.textLabel.font = [UIFont fontWithName:@"AvenirNext-Medium" size:15];
         cell.detailTextLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:12];
+        
         if([[ShadowData sharedInstance] enabled:@"darkmode"]){
-            [cell setBackgroundColor:[UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00]];
+            cell.textLabel.textColor = [UIColor whiteColor];
+            cell.detailTextLabel.textColor = [UIColor whiteColor];
+            [cell setBackgroundColor:[UIColor colorWithRed: 30/255.0 green: 30/255.0 blue: 30/255.0 alpha: 1.00]];
         }
     }
     if(indexPath.row == 0){
@@ -86,20 +76,14 @@
         UIGraphicsEndImageContext();
         header = [header imageWithAlignmentRectInsets:UIEdgeInsetsMake(30, 30, 30, 30)];
         
-        UIImageView *imageView = [[UIImageView new]initWithImage: header];
+        UIImageView *imageView = [[UIImageView new] initWithImage: header];
         imageView.contentMode = UIViewContentModeScaleToFill;
-        //imageView.image = header;
         imageView.layer.cornerRadius = 15;
-        imageView.layer.shadowColor = [UIColor purpleColor].CGColor;
-            imageView.layer.shadowOffset = CGSizeMake(0, 1);
-            imageView.layer.shadowOpacity = 1;
-            imageView.layer.shadowRadius = 1.0;
-        
         imageView.clipsToBounds = true;
-        
         cell.backgroundView = imageView;
+        
         if([[ShadowData sharedInstance] enabled:@"darkmode"]){
-            [cell setBackgroundColor:[UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00]];
+            [cell setBackgroundColor:[UIColor colorWithRed: 30/255.0 green: 30/255.0 blue: 30/255.0 alpha: 1.00]];
         }
         cell.userInteractionEnabled = NO;
         return cell;
@@ -109,28 +93,27 @@
         UIButton * resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         [resetButton addTarget:objc_getClass("ShadowHelper") action:@selector(reset) forControlEvents:UIControlEventTouchUpInside];
         [resetButton setTitle:@"Reset" forState:UIControlStateNormal];
+        if([[ShadowData sharedInstance] enabled:@"darkmode"]) resetButton.tintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
         cell.accessoryView = resetButton;
         [resetButton sizeToFit];
     }else if([entry.key isEqualToString:@"picklocation"]){
         UIButton * resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         [resetButton addTarget:objc_getClass("ShadowHelper") action:@selector(pickLocation) forControlEvents:UIControlEventTouchUpInside];
         [resetButton setTitle:@"Pick" forState:UIControlStateNormal];
+        if([[ShadowData sharedInstance] enabled:@"darkmode"]) resetButton.tintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
         cell.accessoryView = resetButton;
         [resetButton sizeToFit];
     }else if([entry.key isEqualToString:@"debug"]){
         UIButton * resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         [resetButton addTarget:objc_getClass("ShadowHelper") action:@selector(debug) forControlEvents:UIControlEventTouchUpInside];
         [resetButton setTitle:@"Launch" forState:UIControlStateNormal];
+        if([[ShadowData sharedInstance] enabled:@"darkmode"]) resetButton.tintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
         cell.accessoryView = resetButton;
         [resetButton sizeToFit];
     } else if(entry.useEntry){
-        //UITextField *textField = [[UITextField alloc] initWithFrame:];
         UITextField *textField = [UITextField new];
-        //CGSize size = [textField sizeThatFits:CGSizeMake(cell.frame.size.width , cell.frame.size.height)];
-        //[textField setFrame:CGRectMake(size.width,size.height,0,0)];
         textField.borderStyle = UITextBorderStyleRoundedRect;
         textField.font = [UIFont fontWithName:@"AvenirNext-Medium" size:13.5];
-        //textField.placeholder = @"Enter stuff";
         textField.text = entry.entry;
         textField.autocorrectionType = UITextAutocorrectionTypeNo;
         textField.keyboardType = UIKeyboardTypeDefault;
@@ -139,10 +122,12 @@
         textField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
         textField.returnKeyType = UIReturnKeyDone;
         textField.delegate = self;
-        textField.tag = indexPath.row;
-#ifndef TWELVE
-        textField.backgroundColor = [UIColor clearColor];
-#endif
+        textField.tag = indexPath.row-1;
+        /// IMPORTANT STUFF FOR IOS 12 / DARK MODE TODO
+        //textField.backgroundColor = [UIColor clearColor];
+        if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+            textField.textColor = [UIColor whiteColor];
+        }
         if([[ShadowData sharedInstance].server[entry.key] isEqualToString:@"Disable"]){
             textField.enabled = FALSE;
             textField.text = @"";
@@ -150,15 +135,14 @@
             [[ShadowData sharedInstance] disable:entry.key];
             
         }
-        //[textField addTarget:self action:@selector(editingEnded:) forControlEvents:UIControlEventValueChanged];
         cell.accessoryView = textField;
-        //[textField.widthAnchor constraintLessThanOrEqualToConstant:cell.frame.size.width / 4].active = YES;
         [textField sizeToFit];
         [textField setFrame:CGRectMake(textField.frame.origin.x,textField.frame.origin.y,cell.frame.size.width / 2,textField.frame.size.height)];
-        //[textField sizeThatFits:CGSizeMake(cell.frame.size.width , cell.frame.size.height)];
     }else{
         UISwitch *switchview = [[UISwitch alloc] initWithFrame:CGRectMake(0,0,0,0)];
         switchview.on = entry.value;
+        if([[ShadowData sharedInstance] enabled:@"darkmode"])
+            switchview.onTintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
         [switchview addTarget:self action:@selector(switchChanged:) forControlEvents:UIControlEventValueChanged];
         switchview.tag = indexPath.row -1;
         if([[ShadowData sharedInstance].server[entry.key] isEqualToString:@"Disable"]){
@@ -187,7 +171,6 @@
 }
 -(NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section{
     return [ShadowData sharedInstance].server[@"motd"];
-    //return @"Shadow MK7 | Wyatt x Kanji";
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayFooterView:(UIView *)view forSection:(NSInteger)section{
@@ -195,12 +178,33 @@
     footerView.textLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:12];
     footerView.textLabel.textAlignment = NSTextAlignmentCenter;
     footerView.textLabel.numberOfLines = 0;
+    if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+        footerView.backgroundView.backgroundColor = [UIColor colorWithRed: 18/255.0 green: 18/255.0 blue: 18/255.0 alpha: 1.00];
+    }
     [footerView.textLabel sizeToFit];
+    /*
+    if([[ShadowData sharedInstance] enabled_secure: "darkmode"]){
+        self.table.backgroundColor = [UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00];
+    }
+     */
 }
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     UINavigationBar *nav = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, 100)];
-    [nav setTitleTextAttributes: @{NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Bold" size:19]}];
+    if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+        [nav setTitleTextAttributes: @{
+            NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Bold" size:19],
+            NSForegroundColorAttributeName:[UIColor whiteColor]
+        }];
+    }else{
+        [nav setTitleTextAttributes: @{
+            NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Bold" size:19]
+        }];
+    }
     UINavigationItem* navItem = [[UINavigationItem alloc] initWithTitle:@"Shadow Settings"];
+    
+    //UILabel *navLabel = [UILabel new];
+    //navLabel.text = @"Shadow Settings";
+    
     UIBarButtonItem* more = [[UIBarButtonItem alloc] initWithTitle: @"More" style:UIBarButtonItemStylePlain target:self action:@selector(morePressed:)];
     UIBarButtonItem* back = [[UIBarButtonItem alloc] initWithTitle: @"Back" style:UIBarButtonItemStylePlain target:self action:@selector(backPressed:)];
     [more setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Demibold" size:17]} forState:UIControlStateNormal];
@@ -209,6 +213,11 @@
     navItem.rightBarButtonItem = back;
     [nav setItems:@[navItem]];
     [nav layoutSubviews];
+    
+    if([[ShadowData sharedInstance] enabled: @"darkmode"]){
+        nav.tintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
+        nav.barTintColor = [UIColor colorWithRed: 18/255.0 green: 18/255.0 blue: 18/255.0 alpha: 1.00];
+    }
     return nav;
 }
 -(void)switchChanged:(id)sender {

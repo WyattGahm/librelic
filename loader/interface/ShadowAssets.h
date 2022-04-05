@@ -22,13 +22,19 @@
  */
 @property UIImage *header;
 @property UIImage *rose;
+@property UIImage *upload;
+@property UIImage *save;
+@property UIImage *saved;
+@property UIImage *done;
 
 @end
 
 @implementation ShadowAssets
 - (id)init{
     self = [super init];
-    self.header = [ShadowAssets download:@"https://cdn.discordapp.com/attachments/953505592759177268/960604026410532864/shadow_x_relic.png"];
+    //self.header = [ShadowAssets download:@"https://cdn.discordapp.com/attachments/953505592759177268/960604026410532864/shadow_x_relic.png"];
+    //self.header = [ShadowAssets download:@"https://cdn.discordapp.com/attachments/953505592759177268/960766335346950194/SIX_D1FE30A9-FF97-426B-9ABC-69B2C15BB28B.png"];
+    self.header = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/header1.png"];
     return self;
 }
 

@@ -58,13 +58,26 @@
 
 #import "XLLogerManager.h"
 
+
+
+
+
 SIGActionSheetCell * saveCell;
 UIImage * imagesync;
+id saved0 = nil;
+id saved1 = nil;
 
 @interface ShadowHelper: NSObject
 @end
 
 @implementation ShadowHelper
++(void)saveSnap{
+    [saved0 performSelector:@selector(saveSnap)];
+    UIButton *button = saved1;
+    UIImage *savedIcon = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/saved.png"];
+    [button setImage: savedIcon forState:UIControlStateNormal];
+    NSLog(@"Done saving like fr");
+}
 +(void)markSnap{
     if([ShadowData sharedInstance].seen == FALSE){
         [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Marking as SEEN!" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:1.0]];
@@ -267,12 +280,10 @@ static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4)
         if(stack.arrangedSubviews.count > 0) [stack addArrangedSubview: div];
         SIGActionSheetCell *newOption = [(SIGActionSheetCell *)[%c(SIGActionSheetCell) optionCellWithText:@""] initWithStyle:0];
 
-        newOption.titleText = @"Save to Camera Roll 📷";
+        newOption.titleText = @"Save to Camera Roll";
         //figure out internal way fo using selectors instead of gesture recog
         /* [newOption _addTarget:self action:@selector(saveSnap)]; */
-    #ifndef TWELVE
-        [newOption setTrailingAccessoryView:[[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"arrow.down.doc.fill"]]];
-    #endif
+        [newOption setTrailingAccessoryView:[[UIImageView alloc] initWithImage:[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/save.png"]]];
         saveCell = newOption;
         SCOperaPageViewController *opera = (SCOperaPageViewController *)[[self attachedToView] performSelector:@selector(_operaPageViewController)];
         for(int i = 0; i < newOption.gestureRecognizers.count;i++)
@@ -336,10 +347,9 @@ static void loaded2(id self, SEL _cmd){
     */
     if([[ShadowData sharedInstance] enabled_secure: "seenbutton"]){
         //if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]) return;
-        NSString * pathToIcon = [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject].path stringByAppendingPathComponent:@"Composer/resources-common_profile.dir/res/hide.png"];
-        UIImage *seenIcon = [[UIImage alloc] initWithContentsOfFile:pathToIcon];
         UIButton * seenButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
         seenButton.imageEdgeInsets = UIEdgeInsetsMake(-5, -5, -5, -5);
+        UIImage *seenIcon = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/seen.png"];
         [seenButton setImage: seenIcon forState:UIControlStateNormal];
         [seenButton addTarget:%c(ShadowHelper) action:@selector(markSnap) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.15; //tweak me? dynamic maybe?
@@ -351,11 +361,11 @@ static void loaded2(id self, SEL _cmd){
     if([[ShadowData sharedInstance] enabled_secure: "savebutton"]){
         UIButton * saveButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
         saveButton.imageEdgeInsets = UIEdgeInsetsMake(-5, -5, -5, -5);
-#ifndef TWELVE
-        UIImage *saveIcon = [UIImage systemImageNamed:@"arrow.down.doc.fill"];
+        UIImage *saveIcon = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/save.png"];
         [saveButton setImage: saveIcon forState:UIControlStateNormal];
-#endif
-        [saveButton addTarget:self action:@selector(saveSnap) forControlEvents:UIControlEventTouchUpInside];
+        saved0 = self;
+        saved1 = saveButton;
+        [saveButton addTarget:%c(ShadowHelper) action:@selector(saveSnap) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
         double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
         saveButton.center = CGPointMake(x, y);
@@ -374,8 +384,7 @@ static void loaded(id self, SEL _cmd){
     orig_loaded(self, _cmd);
     if(![[ShadowData sharedInstance] enabled_secure: "upload"]) return;
     if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]) return;
-    NSString * pathToIcon = [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject].path stringByAppendingPathComponent:@"Composer/resources-private_profile.dir/res/core_button_share.png"];
-    UIImage *uploadIcon = [[UIImage alloc] initWithContentsOfFile:pathToIcon];
+    UIImage *uploadIcon = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/upload.png"];
     UIButton * uploadButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
     [uploadButton setImage:uploadIcon forState:UIControlStateNormal];
     uploadButton.imageEdgeInsets = UIEdgeInsetsMake(-5, -5, -5, -5);
@@ -611,6 +620,20 @@ void openurl2(id self, SEL _cmd, id arg1, long arg2, id arg3, id arg4, id arg5){
     }
 }
 
+@interface SCSwipeViewContainerViewController: NSObject
+@property NSUInteger allowedDirections;
+@end
+
+long (*orig_nomapswipe)(id self, SEL _cmd, id arg1);
+long nomapswipe(id self, SEL _cmd, id arg1){
+    NSString *pageName = MSHookIvar<NSString *>(self, "_debugName");
+    if([[ShadowData sharedInstance] enabled: @"nomapswiping"]){
+        if([pageName isEqualToString:@"Friend Feed"]){
+            ((SCSwipeViewContainerViewController*)self).allowedDirections = 1;
+        }
+    }
+    return orig_nomapswipe(self, _cmd, arg1);
+}
 
 %ctor{
     /*
@@ -648,6 +671,7 @@ void openurl2(id self, SEL _cmd, id arg1, long arg2, id arg3, id arg4, id arg5){
         RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(viewDidLoad), (void *)loaded, &orig_loaded);
         RelicHookMessageEx(%c(SCContextV2SwipeUpGestureTracker), @selector(setPresented:animated:source:completion:), (void *)savebtn, &orig_savebtn);
         RelicHookMessageEx(%c(SCChatViewHeader), @selector(attachCallButtonsPane), (void *)hidebuttons, &orig_hidebuttons);
+        RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(isFullyVisible:), (void *)nomapswipe, &orig_nomapswipe);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowShowsAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowEmbeddedWebViewAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowPublicStoriesAds), (void *)noads);
