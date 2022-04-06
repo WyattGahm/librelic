@@ -60,10 +60,11 @@
 
 
 
-
+@interface SCOperaViewController : UIViewController
+-(void)_advanceToNextPage:(BOOL)arg1;
+@end
 
 SIGActionSheetCell * saveCell;
-UIImage * imagesync;
 id saved0 = nil;
 id saved1 = nil;
 
@@ -71,22 +72,31 @@ id saved1 = nil;
 @end
 
 @implementation ShadowHelper
-+(void)saveSnap{
-    [saved0 performSelector:@selector(saveSnap)];
-    UIButton *button = saved1;
-    UIImage *savedIcon = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/saved.png"];
-    [button setImage: savedIcon forState:UIControlStateNormal];
-    NSLog(@"Done saving like fr");
++(void)banner:(NSString*)text color:(NSString *)color alpha:(float)alpha{
+    if([[ShadowData sharedInstance] enabled_secure: "showbanners"]){
+        unsigned rgbValue = 0;
+        NSScanner *scanner = [NSScanner scannerWithString:color];
+        [scanner setScanLocation:1];
+        [scanner scanHexInt:&rgbValue];
+        UIColor * bannerColor = [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:alpha];
+        [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:text backgroundColor:bannerColor];
+    }
+}
++(void)banner:(NSString*)text color:(NSString *)color{
+    if([[ShadowData sharedInstance] enabled_secure: "showbanners"]){
+        [self banner:text color:color alpha:.75];
+    }
 }
 +(void)markSnap{
     if([ShadowData sharedInstance].seen == FALSE){
-        [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Marking as SEEN!" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:1.0]];
+        [ShadowHelper banner:@"Marking as SEEN" color:@"#00FF00"];
         [ShadowData sharedInstance].seen = TRUE;
         if([[ShadowData sharedInstance] enabled_secure: "closeseen"]){
-            [(SCOperaPageViewController *)[ShadowData sharedInstance].currentopera autoAdvanceTimerDidFire];
+            //[(SCOperaPageViewController *)[ShadowData sharedInstance].currentopera autoAdvanceTimerDidFire];
+            [((SCOperaViewController*)((SCOperaPageViewController *)[ShadowData sharedInstance].currentopera).delegate) _advanceToNextPage:YES];
         }
     }else{
-        [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Marking as UNSEEN!" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:1.0]];
+        [ShadowHelper banner:@"Marking as UNSEEN" color:@"#00FF00"];
         [ShadowData sharedInstance].seen = FALSE;
     }
 }
@@ -119,7 +129,9 @@ id saved1 = nil;
     SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
         [ShadowData resetSettings];
         [alert dismissViewControllerAnimated:YES completion:nil];
-        exit(0);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
+            exit(0);
+        });
     }];
     SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
         [alert dismissViewControllerAnimated:YES completion:nil];
@@ -168,16 +180,23 @@ static void snapghost(id self, SEL _cmd, long long arg1, id arg2, long long arg3
 }
 
 //no orig, were adding this
-static void save(id self, SEL _cmd) {
+static void save(SCOperaPageViewController* self, SEL _cmd) {
+    UIButton *button = [self.view.subviews lastObject];
+    UIImage *savedIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/saved.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+    [button setImage: savedIcon forState:UIControlStateNormal];
+    button.userInteractionEnabled = NO;
+    
   NSArray *mediaArray = [self shareableMedias];
   if (mediaArray.count == 1) {
     SCOperaShareableMedia *mediaObject = (SCOperaShareableMedia *)[mediaArray firstObject];
     if (mediaObject.mediaType == 0) {
       UIImage *snapImage = [mediaObject image];
       UIImageWriteToSavedPhotosAlbum(snapImage, nil, nil, nil);
-      [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
+        [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
+      //[%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
     } else {
-      [%c(SCStatusBarOverlayLabelWindow) showErrorWithText:@"Uh oh! Failed to save this snap. 😢" backgroundColor:[UIColor colorWithRed:255/255.0 green:0/255.0 blue:0/255.0 alpha:1]];
+        [ShadowHelper banner:@"Uh oh! Failed to save snap😢" color:@"#FF0000"];
+      //[%c(SCStatusBarOverlayLabelWindow) showErrorWithText:@"Uh oh! Failed to save this snap. 😢" backgroundColor:[UIColor colorWithRed:255/255.0 green:0/255.0 blue:0/255.0 alpha:1]];
     }
   } else {
     for (SCOperaShareableMedia *mediaObject in mediaArray) {
@@ -192,11 +211,13 @@ static void save(id self, SEL _cmd) {
         exportSession.outputFileType = AVFileTypeQuickTimeMovie;
         [exportSession exportAsynchronouslyWithCompletionHandler:^{
           UISaveVideoAtPathToSavedPhotosAlbum(tempVideoFileURL.path, nil, nil, nil);
-          [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
+            [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
+          //[%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
         }];
       } else if (mediaObject.mediaType == 1 && mediaObject.videoURL && mediaObject.videoAsset == nil) {
         UISaveVideoAtPathToSavedPhotosAlbum(mediaObject.videoURL.path, nil, nil, nil);
-        [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
+          [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
+        //[%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
       }
     }
   }
@@ -292,14 +313,13 @@ static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4)
         if(stack.arrangedSubviews.count > 0) [stack addArrangedSubview: div];
         [stack addArrangedSubview: newOption];
     }@catch(id anException) {
-        [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Unable to save this media" backgroundColor:[UIColor colorWithRed:255.0/255.0 green:0/255.0 blue:0/255.0 alpha:0.64]];
+        [ShadowHelper banner:@"Incompatible save button!" color:@"#FF0000"];
     }
 }
 
 static void (*orig_markheader)(id self, SEL _cmd, NSUInteger arg1);
 static void markheader(id self, SEL _cmd, NSUInteger arg1){
     orig_markheader(self, _cmd, arg1);
-    NSLog(@"MARKING: %ld",arg1);
     @try{
         if(![[ShadowData sharedInstance] enabled: @"notitle"]){
             if([[ShadowData sharedInstance] enabled: @"customtitle"]){
@@ -347,25 +367,29 @@ static void loaded2(id self, SEL _cmd){
     */
     if([[ShadowData sharedInstance] enabled_secure: "seenbutton"]){
         //if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]) return;
-        UIButton * seenButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
-        seenButton.imageEdgeInsets = UIEdgeInsetsMake(-5, -5, -5, -5);
-        UIImage *seenIcon = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/seen.png"];
+        UIButton * seenButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        seenButton.frame = CGRectMake(40,40,40,40);
+        UIImage *seenIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/seen.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
         [seenButton setImage: seenIcon forState:UIControlStateNormal];
-        [seenButton addTarget:%c(ShadowHelper) action:@selector(markSnap) forControlEvents:UIControlEventTouchUpInside];
-        double x = [UIScreen mainScreen].bounds.size.width * 0.15; //tweak me? dynamic maybe?
-        double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
-        seenButton.center = CGPointMake(x, y);
+        [seenButton addTarget:self action:@selector(markSeen) forControlEvents:UIControlEventTouchUpInside];
+        if([[ShadowData sharedInstance] enabled_secure: "seenright"]){
+            double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
+            double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
+            seenButton.center = CGPointMake(x, y - 50);
+        }else{
+            double x = [UIScreen mainScreen].bounds.size.width * 0.15;
+            double y = [UIScreen mainScreen].bounds.size.height * 0.80;
+            seenButton.center = CGPointMake(x, y);
+        }
         [ShadowData sharedInstance].currentopera = self;
         [((UIViewController*)self).view addSubview: seenButton];
     }
     if([[ShadowData sharedInstance] enabled_secure: "savebutton"]){
-        UIButton * saveButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
-        saveButton.imageEdgeInsets = UIEdgeInsetsMake(-5, -5, -5, -5);
-        UIImage *saveIcon = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/save.png"];
+        UIButton * saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        saveButton.frame = CGRectMake(40,40,40,40);
+        UIImage *saveIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/save.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
         [saveButton setImage: saveIcon forState:UIControlStateNormal];
-        saved0 = self;
-        saved1 = saveButton;
-        [saveButton addTarget:%c(ShadowHelper) action:@selector(saveSnap) forControlEvents:UIControlEventTouchUpInside];
+        [saveButton addTarget:self action:@selector(saveSnap) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
         double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
         saveButton.center = CGPointMake(x, y);
@@ -384,10 +408,10 @@ static void loaded(id self, SEL _cmd){
     orig_loaded(self, _cmd);
     if(![[ShadowData sharedInstance] enabled_secure: "upload"]) return;
     if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]) return;
-    UIImage *uploadIcon = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/upload.png"];
-    UIButton * uploadButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
+    UIButton * uploadButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    uploadButton.frame = CGRectMake(40,40,40,40);
+    UIImage *uploadIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/upload.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
     [uploadButton setImage:uploadIcon forState:UIControlStateNormal];
-    uploadButton.imageEdgeInsets = UIEdgeInsetsMake(-5, -5, -5, -5);
     [uploadButton addTarget:self action:@selector(upload) forControlEvents:UIControlEventTouchUpInside];
     double x = [UIScreen mainScreen].bounds.size.width *0.88; //tweak me? dynamic maybe?
     double y = [UIScreen mainScreen].bounds.size.height *0.87;//tweak me? dynamic maybe?
@@ -568,10 +592,9 @@ static BOOL (*orig_updateghost)(id self, SEL _cmd);
 static BOOL updateghost(id self, SEL _cmd){
     if([[ShadowData sharedInstance] enabled_secure: "eastereggs"]){
         UIImageView * normal = MSHookIvar<UIImageView *>(self, "_defaultBody");
-        normal.image = imagesync;
-        NSLog(@"PERFORMING IMAGE SWAP");
+        normal.image = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/rose.png"];
     }
-    return TRUE;//orig_updateghost(self, _cmd);
+    return orig_updateghost(self, _cmd);
 }
 
 static void (*orig_settingstext)(id self, SEL _cmd);
@@ -635,6 +658,59 @@ long nomapswipe(id self, SEL _cmd, id arg1){
     return orig_nomapswipe(self, _cmd, arg1);
 }
 
+uint64_t confirmshot(id self, SEL _cmd){
+    uint64_t (*orig)(id self, SEL _cmd) = (typeof(orig))class_getMethodImplementation([self class], _cmd);
+    if(![[ShadowData sharedInstance] enabled: @"scpassthrough"] && [[ShadowData sharedInstance] enabled: @"screenshotconfirm"]){
+        SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Screenshot" description:@"Should we notify the app that you took a screenshot?"];
+        
+        SIGAlertDialogAction *screenshot = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Screenshot" actionBlock:^(){
+            [alert dismissViewControllerAnimated:YES completion:nil];
+            return orig(self, _cmd);
+        }];
+        SIGAlertDialogAction *ignore = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Supress" actionBlock:^(){
+            [alert dismissViewControllerAnimated:YES completion:nil];
+        }];
+        [alert _setActions: @[ignore,screenshot]];
+        UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+        while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+        [topVC presentViewController: alert animated: true completion:nil];
+    }
+}
+
+%hook NSNotificationCenter
+- (void)addObserver:(id)arg1 selector:(SEL)arg2 name:(id)arg3 object:(id)arg4 {
+    NSString *data = arg3;
+    if([data isEqual: @"UIApplicationUserDidTakeScreenshotNotification"]){
+        if([[ShadowData sharedInstance] enabled: @"screenshot"]){
+            RelicHookMessage([arg1 class], arg2, (void *)confirmshot);
+        }
+    }
+    if([data isEqual: @"SCUserDidScreenRecordContentNotification"]){
+        if([[ShadowData sharedInstance] enabled: @"screenrecord"]){
+            return;
+        }
+    }
+    %orig;
+}
+%end
+
+void markSeen(SCOperaPageViewController * self, SEL _cmd){
+    if([[ShadowData sharedInstance] enabled_secure: "closeseen"]){
+        [ShadowHelper banner:@"Marking as SEEN" color:@"#00FF00"];
+        [ShadowData sharedInstance].seen = TRUE;
+        [((SCOperaViewController*)self.delegate) _advanceToNextPage:YES];
+    }else{
+        if([ShadowData sharedInstance].seen == FALSE){
+            [ShadowHelper banner:@"Marking as SEEN" color:@"#00FF00"];
+            [ShadowData sharedInstance].seen = TRUE;
+        }else{
+            [ShadowHelper banner:@"Marking as UNSEEN" color:@"#00FF00"];
+            [ShadowData sharedInstance].seen = FALSE;
+        }
+    }
+    
+}
+
 %ctor{
     /*
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){
@@ -663,6 +739,7 @@ long nomapswipe(id self, SEL _cmd, id arg1){
         RelicHookMessageEx(%c(SCURLAttachmentHandler),@selector(openURL:baseView:), (void *)openurl, &orig_openurl);
         RelicHookMessageEx(%c(SCContextV2BrowserPresenter),@selector(presentURL:preferExternal:metricParams:fromViewController:completion:), (void *)openurl2, &orig_openurl2);
         RelicHookMessage(%c(SCOperaPageViewController), @selector(saveSnap), (void *)save);
+        RelicHookMessage(%c(SCOperaPageViewController), @selector(markSeen), (void *)markSeen);
         RelicHookMessage(%c(SCSwipeViewContainerViewController), @selector(upload), (void *)uploadhandler);
         RelicHookMessageEx(%c(SIGPullToRefreshGhostView), @selector(rainbow), (void *)updateghost, &orig_updateghost);
         RelicHookMessageEx(%c(SCLocationManager), @selector(location), (void *)location, &orig_location);
@@ -684,11 +761,10 @@ long nomapswipe(id self, SEL _cmd, id arg1){
     });
     NSLog(@"[Shadow X + Relic] Hooks Initialized and Tweak Loaded");
     [[ShadowData sharedInstance] load];
-    imagesync = [UIImage imageWithData: [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString: @"https://i.imgur.com/C8y2teK.jpg"]]];
 }
 
 %dtor {
-    if(![ShadowData isFirst]) [[ShadowData sharedInstance] save];
+    //if(![ShadowData isFirst]) [[ShadowData sharedInstance] save];
     NSLog(@"[Shadow X + Relic] Hooks Unloaded (App Closed)");
 }
 

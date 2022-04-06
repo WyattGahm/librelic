@@ -42,10 +42,13 @@
     self.prefs = [ShadowSetting makeSettings:@[
         @[@"darkmode", @"Shadow Dark Mode", @"Use dark mode in this settings menu.", @TRUE],
         @[@"nomapswiping", @"No Map Swipe", @"Disable swiping to Snapmap.", @TRUE],
-        @[@"screenshotconfirm", @"Screenshot Confirm", @"Presents a prompt to ignore screenshots.", @TRUE],
+        @[@"screenshotconfirm", @"Screenshot Confirm", @"Presents a prompt to ignore screenshots (Turn off Screenshot Supression)", @TRUE],
         @[@"screenrecord", @"Screen Record", @"Supress screen recording", @TRUE],
+        @[@"seenright", @"Seen On Right", @"Seen Button moved to the right side of the screen", @FALSE],
+        @[@"showbanners", @"Show Banners", @"Enable banners for some interactions (saving, marking as seen)", @FALSE],
         @[@"eastereggs", @"Enable Easter Eggs", @"Enable some small and potentially buggy secret changes.",@TRUE],
-        @[@"screenshot", @"Screenshot Supression", @"Screenshotting will no longer send a notification.", @TRUE],
+        @[@"scpassthrough", @"Screenshot Toggle", @"Toggle supressing all screenshots temporarily", @TRUE],
+        @[@"screenshot", @"Screenshot Features", @"Master control for all screenshotting functions", @TRUE],
         @[@"savebutton", @"Use Save Button", @"This option will provide a save button to replace the menu option.", @TRUE],
         @[@"save", @"Save To Camera Roll", @"Tap and hold while viewing a snap to bring up the UI press \"Save to Camera Roll 📷\".",@TRUE],
         @[@"upload", @"Upload From Camera Roll", @"Press the upload button to select an image and then press the button to take a picture.", @TRUE],
@@ -136,6 +139,7 @@
     NSString *path = [ShadowData fileWithName:FILE];
     NSData *data = [NSKeyedArchiver archivedDataWithRootObject:self requiringSecureCoding:NO error:nil];//[NSKeyedArchiver archivedDataWithRootObject:self requiringSecureCoding:NO error:nil];
     [data writeToFile:path options:NSDataWritingAtomic error:nil];
+    NSLog(@"SAVING DATA...");
 }
 //load
 -(id)load{

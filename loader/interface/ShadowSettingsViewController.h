@@ -64,17 +64,8 @@
     if(indexPath.row == 0){
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"header"];
         
-        UIImage * header = [ShadowAssets sharedInstance].header;
+        UIImage * header = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/header0.png"];
         
-        float scaleFactor = 60 / header.size.height;
-        float newHeight = header.size.height * scaleFactor;
-        float newWidth = header.size.width * scaleFactor;
-
-        UIGraphicsBeginImageContext(CGSizeMake(newWidth, newHeight));
-        [header drawInRect:CGRectMake(0, 0, newWidth, newHeight)];
-        UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-        header = [header imageWithAlignmentRectInsets:UIEdgeInsetsMake(30, 30, 30, 30)];
         
         UIImageView *imageView = [[UIImageView new] initWithImage: header];
         imageView.contentMode = UIViewContentModeScaleToFill;
@@ -126,7 +117,7 @@
         /// IMPORTANT STUFF FOR IOS 12 / DARK MODE TODO
         //textField.backgroundColor = [UIColor clearColor];
         if([[ShadowData sharedInstance] enabled:@"darkmode"]){
-            textField.textColor = [UIColor whiteColor];
+            textField.textColor = [UIColor blackColor];
         }
         if([[ShadowData sharedInstance].server[entry.key] isEqualToString:@"Disable"]){
             textField.enabled = FALSE;
