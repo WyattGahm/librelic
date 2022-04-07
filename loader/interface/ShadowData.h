@@ -12,14 +12,11 @@
 #define SETTINGS @"settings"
 #define FILE @"shadowxrelic.plist"
 
-@interface ShadowData:NSObject <NSCoding>//,NSXMLParserDelegate
-@property (strong, nonatomic) NSArray<ShadowSetting *> *prefs;
-@property (strong, nonatomic) NSMutableDictionary *settings;
-@property (strong, nonatomic) NSMutableDictionary *location;
-@property (strong, nonatomic) NSDictionary *server;
-@property (strong, nonatomic) NSMutableDictionary *story;
-@property (strong, nonatomic) NSString *pagename;
-@property (strong, nonatomic) id currentopera;
+@interface ShadowData:NSObject <NSCoding>
+@property NSArray<ShadowSetting *> *prefs;
+@property NSMutableDictionary *settings;
+@property NSMutableDictionary *location;
+@property NSDictionary *server;
 @property BOOL seen;
 -(void)save;
 -(id)load;
@@ -29,60 +26,61 @@
 +(void)resetSettings;
 +(NSString *)fileWithName:(NSString *)name;
 -(CLLocation *)getLocation;
-/*
- - (BOOL)objectForKeyedSubscript:(id)key;
- - (void)setObject:(id)obj forKeyedSubscript:(id <NSCopying>)key ;
- */
 @end
 
 @implementation ShadowData
-//NSObject
 -(id)init{
     self = [super init];
     self.prefs = [ShadowSetting makeSettings:@[
-        @[@"darkmode", @"Shadow Dark Mode", @"Use dark mode in this settings menu.", @TRUE],
-        @[@"nomapswiping", @"No Map Swipe", @"Disable swiping to Snapmap.", @TRUE],
-        @[@"screenshotconfirm", @"Screenshot Confirm", @"Presents a prompt to ignore screenshots (Turn off Screenshot Supression)", @TRUE],
-        @[@"screenrecord", @"Screen Record", @"Supress screen recording", @TRUE],
-        @[@"seenright", @"Seen On Right", @"Seen Button moved to the right side of the screen", @FALSE],
-        @[@"showbanners", @"Show Banners", @"Enable banners for some interactions (saving, marking as seen)", @FALSE],
-        @[@"eastereggs", @"Enable Easter Eggs", @"Enable some small and potentially buggy secret changes.",@TRUE],
-        @[@"scpassthrough", @"Screenshot Toggle", @"Toggle supressing all screenshots temporarily", @TRUE],
-        @[@"screenshot", @"Screenshot Features", @"Master control for all screenshotting functions", @TRUE],
-        @[@"savebutton", @"Use Save Button", @"This option will provide a save button to replace the menu option.", @TRUE],
-        @[@"save", @"Save To Camera Roll", @"Tap and hold while viewing a snap to bring up the UI press \"Save to Camera Roll 📷\".",@TRUE],
-        @[@"upload", @"Upload From Camera Roll", @"Press the upload button to select an image and then press the button to take a picture.", @TRUE],
-        @[@"savehax", @"Keep Snaps In Chat", @"Delivered and open snaps will temporarily be saved in chat.", @TRUE],
-        @[@"seenbutton", @"Enable Mark as Seen", @"Use a button to mark snaps as seen.", @FALSE],
-        @[@"screenshotbtn", @"Screenshot Button", @"Use a button to mark snaps as screenshotted.", @FALSE],
-        @[@"storyghost", @"Story Ghost Master", @"Story ghost master control", @FALSE],
-        @[@"snapghost", @"Snap Ghost Master", @"Snap ghost Master control", @FALSE],
-        @[@"scspambtn", @"Screenshot Spam", @"Rapidly sends screenshot notifications as a PRANK", @TRUE],
-        @[@"closeseen", @"Close On Marked", @"Close the snap when marked as seen. Alternatively, pressing the button again will mark as unseen.", @FALSE],
-        @[@"noads", @"Disable Ads", @"Block all advertisements.", @FALSE],
-        @[@"spoofviews",@"Spoof Story Views", @"Leave blank for normal.",@FALSE,@"1034789"],
-        @[@"spoofsc",@"Spoof Story Screenshots", @"Leave blank for normal.",@FALSE,@"871239"],
-        @[@"pinnedchats",@"Override Pin Limit", @"Enter a number for the chat pin limit.",@TRUE,@"3"],
-        @[@"nocall", @"Hide Call Buttons", @"Hide the call buttons on recent UI versions.",@TRUE],
-        @[@"openurl", @"Open Link Default", @"Open links in chat using safari.",@FALSE],
-        @[@"callconfirmvideo", @"Video Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
-        @[@"callconfirmaudio", @"Audio Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
-        @[@"hidenewchat", @"Hide New Chat Button", @"Hide the blue button on the bottom on recent UI versions.",@TRUE],
-        @[@"highlights", @"Remove Highlights", @"Remove the stupid TikTok knock-off tab (requires app restart).",@FALSE],
-        @[@"discover", @"Remove Discover", @"Remove the Discover stories",@FALSE],
-        @[@"markfriends", @"Manual Mark Friends", @"Mark all stories but friends as seen automatically",@FALSE],
-        @[@"quickadd", @"Remove Quick Add", @"Remove the Quick Add sections",@FALSE],
-        @[@"friendmoji", @"Hide Friendmoji", @"Hide the \"Friendmojis\" next to people's names (requires pull-refresh).", @FALSE],
-        @[@"scramble", @"Randomize Best Friends", @"Randomly change the order off the best friends list.", @FALSE],
-        @[@"location", @"Spoof Location", @"Use the location selector below to change location.", @FALSE],
-        @[@"picklocation", @"Pick Location", @"Requires enabling \"Spoof Location\".", @FALSE],
-        @[@"rgb", @"Cool RGB Animation", @"Makes the shadow header RBG (think chromahomebarX).", @TRUE],
-        @[@"subtitle", @"Hide Subtitle", @"Hide the subtitle containing an MOTD or something from the devs.",@FALSE],
-        @[@"customtitle",@"Custom Title", @"Leave blank to use default.",@FALSE,@""],
-        @[@"notitle", @"Keep Normal Title", @"Enable this to hide the \"Shadow X\" label.", @FALSE],
-        @[@"hotdog", @"Download Hotdog Images", @"Disabling this wont change anything, downloading hotdog images regardless.", @TRUE],
-        @[@"reset", @"Reset All Settings", @"Requires closing and opening Snapchat.", @FALSE],
-        @[@"debug", @"Open Log", @"Opens a log window for debugging.", @FALSE]
+        @[@"header",@"image", @"----", @"----", @"image", @"/Library/Application Support/shadowx/header0.png"],
+        
+        
+        @[@"snapchat interface", @"nomapswiping", @"No Map Swipe", @"Disable swiping to Snapmap.", @"switch", @"false"],
+        @[@"snapchat interface", @"noads", @"Disable Ads", @"Block all advertisements.", @"switch", @"true"],
+        @[@"snapchat interface", @"openurl", @"Open Link Default", @"Open links in chat using safari.", @"switch", @"false"],
+        @[@"snapchat interface", @"hidenewchat", @"Hide New Chat Button", @"Hide the blue button on the bottom on recent UI versions.", @"switch", @"true"],
+        @[@"snapchat interface", @"highlights", @"Remove Highlights", @"Remove the stupid TikTok knock-off tab (requires app restart).", @"switch", @"false"],
+        @[@"snapchat interface", @"discover", @"Remove Discover", @"Remove the Discover stories", @"switch", @"false"],
+        @[@"snapchat interface", @"quickadd", @"Remove Quick Add", @"Remove the Quick Add sections", @"switch", @"false"],
+        @[@"snapchat interface", @"friendmoji", @"Hide Friendmoji", @"Hide the \"Friendmojis\" next to people's names (requires pull-refresh).",  @"switch", @"false"],
+        @[@"snapchat interface", @"scramble", @"Randomize Best Friends", @"Randomly change the order off the best friends list.",  @"switch", @"false"],
+        
+        @[@"recording", @"screenshotconfirm", @"Screenshot Confirm", @"Presents a prompt to ignore screenshots", @"switch", @"false"],
+        @[@"recording", @"screenrecord", @"Screen Record", @"Supress screen recording", @"switch", @"true"],
+        @[@"recording", @"scpassthrough", @"Screenshot Supression", @"Toggle supressing screenshot notifications", @"switch", @"true"],
+        
+        @[@"actions", @"reset", @"Reset All Settings", @"Requires closing and opening Snapchat.", @"button",@"RESET"],
+        @[@"actions", @"debug", @"Open Log", @"Opens a log window for debugging.", @"button", @"DEBUG"],
+        
+        @[@"spoof", @"location", @"Spoof Location", @"Use the location selector below to change location.", @"switch", @"false"],
+        @[@"spoof", @"picklocation", @"Pick Location", @"Requires enabling \"Spoof Location\".", @"button", @"PICK"],
+        @[@"spoof", @"spoofviews",@"Spoof Story Views", @"Leave blank for normal.",@"text",@"1034789"],
+        @[@"spoof", @"spoofsc",@"Spoof Story Screenshots", @"Leave blank for normal.",@"text",@"871239"],
+        @[@"spoof", @"pinnedchats",@"Override Pin Limit", @"Enter a number for the chat pin limit.",@"text",@"3"],
+        @[@"spoof", @"teleport", @"Teleport to Friends", @"Tap a friend on the Snapmap to teleport to them", @"switch", @"false"],
+        
+        @[@"shadow interface", @"darkmode", @"Shadow Dark Mode", @"Use dark mode in this settings menu.", @"switch", @"true"],
+        @[@"shadow interface", @"subtitle", @"Hide Subtitle", @"Hide the subtitle containing an MOTD or something from the devs.",@"switch",@"false"],
+        @[@"shadow interface", @"rgb", @"Cool RGB Animation", @"Makes the shadow header RBG (think chromahomebarX).", @"switch", @"true"],
+        @[@"shadow interface", @"customtitle",@"Custom Title", @"Leave blank to use default.",@"text",@""],
+        
+        @[@"shadow additions", @"seenright", @"Seen On Right", @"Seen Button moved to the right side of the screen", @"switch", @"false"],
+        @[@"shadow additions", @"showbanners", @"Show Banners", @"Enable banners for some interactions (saving, marking as seen)",  @"switch", @"true"],
+        @[@"shadow additions", @"savebutton", @"Use New Save Button", @"Places the save button on the image rather than the action menu", @"switch", @"true"],
+        @[@"shadow additions", @"upload", @"Upload From Camera Roll", @"Press the upload button to select an image and then press the button to take a picture.", @"switch", @"true"],
+        @[@"shadow additions", @"savehax", @"Keep Snaps In Chat", @"Delivered and open snaps will be fake saved in chat.",  @"switch", @"false"],
+        @[@"shadow additions", @"seenbutton", @"Enable Mark as Seen", @"Use a button to mark snaps as seen.",  @"switch", @"true"],
+        @[@"shadow additions", @"screenshotbtn", @"Screenshot Button", @"Use a button to mark snaps as screenshotted.",  @"switch", @"false"],
+        @[@"shadow additions", @"closeseen", @"Close On Marked", @"Close the snap when marked as seen. Alternatively, pressing the button again will mark as unseen.",  @"switch", @"true"],
+        @[@"shadow additions", @"markfriends", @"Manual Mark Friends", @"Mark all stories but friends as seen automatically", @"switch", @"false"],
+        
+        @[@"shadow experiments", @"scspambtn", @"Screenshot Spam", @"Rapidly sends screenshot notifications as a PRANK",  @"switch", @"false"],
+        @[@"shadow experiments", @"eastereggs", @"Enable Easter Eggs", @"Enable some small and potentially buggy secret changes.", @"switch", @"true"],
+        @[@"shadow experiments", @"hotdog", @"Download Hotdog Images", @"Disabling this wont change anything, downloading hotdog images regardless.",  @"switch", @"true"],
+        
+        //@[@"nocall", @"Hide Call Buttons", @"Hide the call buttons on recent UI versions.",@TRUE],
+        //@[@"callconfirmvideo", @"Video Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
+        //@[@"callconfirmaudio", @"Audio Call Confirm", @"Presents a popup to verify that the action was intentional.",@TRUE],
     ]];
     [self syncSettings];
     self.location = [NSMutableDictionary new];
@@ -90,8 +88,7 @@
     return self;
 }
 //NSCoding
-- (void) encodeWithCoder:(NSCoder *)encoder {
-    
+- (void)encodeWithCoder:(NSCoder *)encoder {
     [encoder encodeObject:self.settings forKey:SETTINGS];
     [encoder encodeObject:self.location forKey:LOCATION];
 }
@@ -100,7 +97,7 @@
     self = [self init];
     self.settings = [decoder decodeObjectForKey:SETTINGS];
     self.location = [decoder decodeObjectForKey:LOCATION];
-    return self;//self initwith blahhhhhh
+    return self;
 }
 
 + (instancetype)sharedInstance{
@@ -114,7 +111,7 @@
 }
 
 - (CLLocation *)getLocation{
-    return [[CLLocation alloc]initWithLatitude:[self.location[@"latitude"] boolValue] longitude : [self.location[@"longitude"] boolValue] ];
+    return [[CLLocation alloc]initWithLatitude:[self.location[@"Latitude"] floatValue] longitude : [self.location[@"Longitude"] floatValue] ];
 }
 
 //reinit
@@ -129,11 +126,7 @@
     for(NSString *key in self.settings){
         for(ShadowSetting *setting in self.prefs){
             if([key isEqualToString:setting.key]){
-                if(setting.useEntry){
-                    setting.entry = self.settings[key];
-                }else{
-                    setting.value = ((NSString *)self.settings[key]).boolValue;
-                }
+                setting.value = self.settings[key];
             }
         }
     }
@@ -144,8 +137,19 @@
     NSString *path = [ShadowData fileWithName:FILE];
     NSData *data = [NSKeyedArchiver archivedDataWithRootObject:self requiringSecureCoding:NO error:nil];//[NSKeyedArchiver archivedDataWithRootObject:self requiringSecureCoding:NO error:nil];
     [data writeToFile:path options:NSDataWritingAtomic error:nil];
-    NSLog(@"SAVING DATA...");
 }
+
+-(NSMutableDictionary<NSString*, NSMutableArray<ShadowSetting*>*>*)layout{
+    NSMutableDictionary<NSString*, NSMutableArray<ShadowSetting*>*> *sections = [NSMutableDictionary new];
+    for(ShadowSetting *setting in self.prefs){
+        if(!sections[setting.section] ){
+            sections[setting.section] = [NSMutableArray new];
+        }
+        [sections[setting.section] addObject:setting];
+    }
+    return sections;
+}
+
 //load
 -(id)load{
     NSString *path = [ShadowData fileWithName:FILE];
@@ -158,48 +162,48 @@
 }
 //legacy support
 -(BOOL)enabled:(NSString *) key{
-    //NSLog(@"get: %@",self.settings);
-    //return ((ShadowSetting*)[[ShadowSetting makeDict:self.prefs] objectForKey:key]).value;
     for(ShadowSetting *setting in self.prefs){
         if([setting.key isEqualToString:key]){
-            if(setting.useEntry){
-                return ![setting.entry isEqualToString:@""];
-            }else{
-               return setting.value;
+            if([setting.type isEqualToString:@"switch"]){
+                return [setting.value isEqualToString:@"true"];
+            }else if([setting.type isEqualToString:@"text"]){
+                return ![setting.value isEqualToString:@""];
+            }else if([setting.type isEqualToString:@"button"]){
+                return YES;
             }
         }
     }
-    return false;
-}
-
--(BOOL)enabled_secure:(const char *) str{
-    NSString *key = [NSString stringWithUTF8String:str];
-    //NSLog(@"get: %@",self.settings);
-    //return ((ShadowSetting*)[[ShadowSetting makeDict:self.prefs] objectForKey:key]).value;
-    for(ShadowSetting *setting in self.prefs){
-        if([setting.key isEqualToString:key]){
-            if(setting.useEntry){
-                return ![setting.entry isEqualToString:@""];
-            }else{
-               return setting.value;
-            }
-        }
-    }
-    return false;
+    return NO;
 }
 
 -(void)disable:(NSString *)key{
     for(ShadowSetting *setting in self.prefs){
         if([setting.key isEqualToString:key]){
-            if(setting.useEntry){
-                setting.entry = @"";
-            }else{
-                setting.value = FALSE;
+            if([setting.type isEqualToString:@"switch"]){
+                setting.value = @"false";
+            }else if([setting.type isEqualToString:@"text"]){
+                setting.value = @"";
             }
         }
     }
 }
 
+-(long)indexForKey:(NSString *)key{
+    for(int i = 0; i < self.prefs.count; i ++){
+        if([self.prefs[i].key isEqual: key]){
+            return i;
+        }
+    }
+    return -1;
+}
+-(NSMutableArray<NSString*>*)orderedSections{
+    NSMutableArray<NSString*> *ordered = [NSMutableArray new];
+    for(int i = 0; i < self.prefs.count; i ++){
+        if(![ordered containsObject:self.prefs[i].section])
+            [ordered addObject: self.prefs[i].section];
+    }
+    return ordered;
+}
 //utils
 +(BOOL)isFirst{
     return [[NSFileManager defaultManager] fileExistsAtPath:[ShadowData fileWithName:FILE]];

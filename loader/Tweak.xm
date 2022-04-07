@@ -70,11 +70,8 @@
 @end
 
 @implementation ShadowHelper
-+(void)screenshot{
-    [[NSNotificationCenter defaultCenter] postNotification: [NSNotification notificationWithName:UIApplicationUserDidTakeScreenshotNotification object:nil]];
-}
 +(void)banner:(NSString*)text color:(NSString *)color alpha:(float)alpha{
-    if([[ShadowData sharedInstance] enabled_secure: "showbanners"]){
+    if([[ShadowData sharedInstance] enabled: @"showbanners"]){
         unsigned rgbValue = 0;
         NSScanner *scanner = [NSScanner scannerWithString:color];
         [scanner setScanLocation:1];
@@ -84,27 +81,14 @@
     }
 }
 +(void)banner:(NSString*)text color:(NSString *)color{
-    if([[ShadowData sharedInstance] enabled_secure: "showbanners"]){
+    if([[ShadowData sharedInstance] enabled: @"showbanners"]){
         [self banner:text color:color alpha:.75];
-    }
-}
-+(void)markSnap{
-    if([ShadowData sharedInstance].seen == FALSE){
-        [ShadowHelper banner:@"Marking as SEEN" color:@"#00FF00"];
-        [ShadowData sharedInstance].seen = TRUE;
-        if([[ShadowData sharedInstance] enabled_secure: "closeseen"]){
-            //[(SCOperaPageViewController *)[ShadowData sharedInstance].currentopera autoAdvanceTimerDidFire];
-            [((SCOperaViewController*)((SCOperaPageViewController *)[ShadowData sharedInstance].currentopera).delegate) _advanceToNextPage:YES];
-        }
-    }else{
-        [ShadowHelper banner:@"Marking as UNSEEN" color:@"#00FF00"];
-        [ShadowData sharedInstance].seen = FALSE;
     }
 }
 +(void)debug{
     [[XLLogerManager manager] showOnWindow];
 }
-+(void)pickLocation{
++(void)picklocation{
     UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
     while (topVC.presentedViewController) topVC = topVC.presentedViewController;
     [[LocationPicker new] pickLocationWithCallback:^(NSDictionary *location){
@@ -158,7 +142,7 @@ static void tap(id self, SEL _cmd, id arg1){
 
 static _Bool (*orig_savehax)(id self, SEL _cmd);
 static _Bool savehax(id self, SEL _cmd){
-    if([[ShadowData sharedInstance] enabled_secure: "savehax"]){
+    if([[ShadowData sharedInstance] enabled: @"savehax"]){
         if([self messageType] == 18) return true;
     }
     return orig_savehax(self, _cmd);
@@ -166,13 +150,8 @@ static _Bool savehax(id self, SEL _cmd){
 
 static void (*orig_storyghost)(id self, SEL _cmd, id arg1);
 static void storyghost(id self, SEL _cmd, id arg1){
-    /*
-    NSLog(@"STORY: %@",[self performSelector:@selector(friendStoryViewingSession)]);
-    if(![[ShadowData sharedInstance] enabled_secure: "storyghost"])
+    if(![[ShadowData sharedInstance] enabled: @"seenbutton"])
         orig_storyghost(self, _cmd, arg1);
-    */
-    if(![[ShadowData sharedInstance] enabled_secure: "storyghost"]) orig_storyghost(self, _cmd, arg1);
-    if(![[ShadowData sharedInstance] enabled_secure: "seenbutton"]) return;
     if([ShadowData sharedInstance].seen == TRUE){
         orig_storyghost(self, _cmd, arg1);
         [ShadowData sharedInstance].seen = FALSE;
@@ -181,8 +160,8 @@ static void storyghost(id self, SEL _cmd, id arg1){
 
 static void (*orig_snapghost)(id self, SEL _cmd, long long arg1, id arg2, long long arg3, void * arg4);
 static void snapghost(id self, SEL _cmd, long long arg1, id arg2, long long arg3, void * arg4){
-    if(![[ShadowData sharedInstance] enabled_secure: "snapghost"]) orig_snapghost(self, _cmd, arg1, arg2, arg3, arg4);
-    if(![[ShadowData sharedInstance] enabled_secure: "seenbutton"]) return;
+    if(![[ShadowData sharedInstance] enabled: @"seenbutton"])
+        orig_snapghost(self, _cmd, arg1, arg2, arg3, arg4);
     if([ShadowData sharedInstance].seen == TRUE){
         orig_snapghost(self, _cmd, arg1, arg2, arg3, arg4);
         [ShadowData sharedInstance].seen = FALSE;
@@ -206,10 +185,8 @@ static void save(SCOperaPageViewController* self, SEL _cmd) {
       UIImage *snapImage = [mediaObject image];
       UIImageWriteToSavedPhotosAlbum(snapImage, nil, nil, nil);
         [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
-      //[%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
     } else {
         [ShadowHelper banner:@"Uh oh! Failed to save snap😢" color:@"#FF0000"];
-      //[%c(SCStatusBarOverlayLabelWindow) showErrorWithText:@"Uh oh! Failed to save this snap. 😢" backgroundColor:[UIColor colorWithRed:255/255.0 green:0/255.0 blue:0/255.0 alpha:1]];
     }
   } else {
     for (SCOperaShareableMedia *mediaObject in mediaArray) {
@@ -225,83 +202,22 @@ static void save(SCOperaPageViewController* self, SEL _cmd) {
         [exportSession exportAsynchronouslyWithCompletionHandler:^{
           UISaveVideoAtPathToSavedPhotosAlbum(tempVideoFileURL.path, nil, nil, nil);
             [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
-          //[%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
         }];
       } else if (mediaObject.mediaType == 1 && mediaObject.videoURL && mediaObject.videoAsset == nil) {
         UISaveVideoAtPathToSavedPhotosAlbum(mediaObject.videoURL.path, nil, nil, nil);
           [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
-        //[%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
       }
     }
   }
 }
-/*
-static void saveauto(id self,NSString * folder){
-    NSLog(@"AUTOSAVING: %@", folder);
-    NSArray* mediaArray = [self shareableMedias];
-    //the mediaArray has 1 object, meaning most likely it is image
-    if (mediaArray.count == 1){
-      SCOperaShareableMedia *mediaObject = (SCOperaShareableMedia *)[mediaArray firstObject];
-      //double check that the mediaObject is a image mediaType
-      if (mediaObject.mediaType == 0){
-        UIImage *snapImage = [mediaObject image];
-          NSString * mediaId = (NSString *)[[self performSelector:@selector(page)] performSelector:@selector(_id)];
-          NSURL *filePath = [[NSURL fileURLWithPath:folder] URLByAppendingPathComponent: [mediaId stringByAppendingString: @".png"]];
-          NSLog(@"SAVING IMAGE: %@", filePath.absoluteString);
-          [UIImagePNGRepresentation(snapImage) writeToFile:filePath.absoluteString atomically:YES];
-        //UIImageWriteToSavedPhotosAlbum(snapImage, nil, nil, nil);
-        //[%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
-      }
-      //add error checking
-      else{
-        //[%c(SCStatusBarOverlayLabelWindow) showErrorWithText:@"Uh oh! Failed to save this snap. 😢" backgroundColor:[UIColor colorWithRed:255/255.0 green:0/255.0 blue:0/255.0 alpha:1]];
-      }
-    }
-    //the mediaArray has more than one object, meaning most likely it is a video
-    else{
-      //enumerate through the array to check which object contains the video asset
-      for (SCOperaShareableMedia *mediaObject in mediaArray){
-        //check if mediaObject is video mediaType and it's videoAsset is not null
-        if ((mediaObject.mediaType == 1) && (mediaObject.videoAsset) && (mediaObject.videoURL == nil)){
-          AVURLAsset *asset = (AVURLAsset *)(mediaObject.videoAsset);
-          NSURL *assetURL = asset.URL;
-          NSURL *tempVideoFileURL = [[NSURL fileURLWithPath:folder] URLByAppendingPathComponent: [assetURL lastPathComponent]];
-          AVAssetExportSession *exportSession = [[AVAssetExportSession alloc]initWithAsset:asset presetName:AVAssetExportPresetHighestQuality];
-          exportSession.outputURL = tempVideoFileURL;
-          exportSession.outputFileType = AVFileTypeQuickTimeMovie;
-          [exportSession exportAsynchronouslyWithCompletionHandler:^{
-              NSLog(@"SAVING VIDEO 1: %@", tempVideoFileURL.absoluteString);
-          }];
-        }
-        //did not find a video asset but we did find a cached video url
-        else if(mediaObject.mediaType == 1 && mediaObject.videoURL && mediaObject.videoAsset == nil){
-            NSURL *tempVideoFileURL = [[NSURL fileURLWithPath:folder] URLByAppendingPathComponent: [mediaObject.videoURL lastPathComponent]];
-            NSLog(@"SAVING VIDEO 2: %@", tempVideoFileURL.absoluteString);
-            id uhoh;
-            [[NSFileManager defaultManager] copyItemAtPath: mediaObject.videoURL.path toPath: tempVideoFileURL.path error:&uhoh];
-            //rename("from.txt", "to.txt")
-            NSLog(@"GOT ERROR: %@", uhoh);
-          //UISaveVideoAtPathToSavedPhotosAlbum(mediaObject.videoURL.path,nil,nil,nil);
-         // [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:@"Success! Snap saved to camera roll! 👻" backgroundColor:[UIColor colorWithRed:0/255.0 green:255.0/255.0 blue:0/255.0 alpha:0.64]];
-        }
-      }
-    }
-}
-*/
-
 
 static void (*orig_savebtn)(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4);
 static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4){
-    //- (void)setPresented:(_Bool)arg1 animated:(_Bool)arg2 source:(id)arg3 completion:(id)arg4
-    //%orig;
-    //void (*orig)(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4) = (void*)objc_msgSend;
-    //orig(self, @selector(orig_setPresented:), arg1, arg2, arg3, arg4); //orig
-
-    
     orig_savebtn(self, _cmd, arg1, arg2, arg3, arg4);
+    
     @try{
-        if(![[ShadowData sharedInstance] enabled_secure: "save"]) return;
-        if([[ShadowData sharedInstance] enabled_secure: "savebutton"]) return;
+        if(![[ShadowData sharedInstance] enabled: @"save"]) return;
+        if([[ShadowData sharedInstance] enabled: @"savebutton"]) return;
         
         SCContextV2SwipeUpViewController *menu = (SCContextV2SwipeUpViewController *)[self presentedViewController];
         SCContextV2ActionMenuViewController *action = (SCContextV2ActionMenuViewController *)[[menu childViewControllers] objectAtIndex: 1];
@@ -315,6 +231,8 @@ static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4)
         SIGActionSheetCell *newOption = [(SIGActionSheetCell *)[%c(SIGActionSheetCell) optionCellWithText:@""] initWithStyle:0];
 
         newOption.titleText = @"Save to Camera Roll";
+        
+        
         //figure out internal way fo using selectors instead of gesture recog
         /* [newOption _addTarget:self action:@selector(saveSnap)]; */
         [newOption setTrailingAccessoryView:[[UIImageView alloc] initWithImage:[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/save.png"]]];
@@ -347,7 +265,7 @@ static void markheader(id self, SEL _cmd, NSUInteger arg1){
         if(![[label class] isEqual: %c(SIGLabel)])return;
         SIGLabel *subtitle = headerTitle.subviews[1];
         for(int i = 2; i < headerTitle.subviews.count; i++) [headerTitle.subviews[i] removeFromSuperview]; //remove indicators
-        if(![[ShadowData sharedInstance] enabled_secure: "subtitle"]){
+        if(![[ShadowData sharedInstance] enabled: @"subtitle"]){
             [subtitle setHidden: NO];
             id user = [%c(User) performSelector:@selector(createUser)];
             NSString *dispname = (NSString *)[user performSelector:@selector(displayName_LEGACY_DO_NOT_USE)];
@@ -360,26 +278,22 @@ static void markheader(id self, SEL _cmd, NSUInteger arg1){
             subtitle.text = @"";
         }
         
-        if([[ShadowData sharedInstance] enabled_secure: "rgb"]){
+        if([[ShadowData sharedInstance] enabled: @"rgb"]){
             RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)label];
             [effect resume];
         }
     } @catch(id anException){
-        //debug stuff
+        [ShadowHelper banner:@"Header Modification Error!" color:@"#FF0000"];
     }
 }
 
 static void (*orig_loaded2)(id self, SEL _cmd);
 static void loaded2(SCOperaPageViewController* self, SEL _cmd){
     orig_loaded2(self, _cmd);
-    /*
-    if([[ShadowData sharedInstance] enabled: @"folder"]){
-        saveauto(self,[ShadowData sharedInstance].settings[@"folder"]);
-    }
-    */
+    
     [ShadowData sharedInstance].seen = FALSE;
     NSDictionary* properties = (NSDictionary*)[[self performSelector:@selector(page)] performSelector:@selector(properties)];
-    if([[ShadowData sharedInstance] enabled_secure: "seenbutton"]){
+    if([[ShadowData sharedInstance] enabled: @"seenbutton"]){
         
         if([[ShadowData sharedInstance] enabled: @"markfriends"] && properties[@"discover_story_composite_id"] != nil){
             [ShadowData sharedInstance].seen = TRUE;
@@ -390,7 +304,7 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
             UIImage *seenIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/seen.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
             [seenButton setImage: seenIcon forState:UIControlStateNormal];
             [seenButton addTarget:self action:@selector(markSeen) forControlEvents:UIControlEventTouchUpInside];
-            if([[ShadowData sharedInstance] enabled_secure: "seenright"]){
+            if([[ShadowData sharedInstance] enabled: @"seenright"]){
                 double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
                 double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
                 seenButton.center = CGPointMake(x, y - 50);
@@ -399,11 +313,10 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
                 double y = [UIScreen mainScreen].bounds.size.height * 0.80;
                 seenButton.center = CGPointMake(x, y);
             }
-            [ShadowData sharedInstance].currentopera = self;
             [((UIViewController*)self).view addSubview: seenButton];
         }
     }
-    if([[ShadowData sharedInstance] enabled_secure: "savebutton"]){
+    if([[ShadowData sharedInstance] enabled: @"savebutton"]){
         UIButton * saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
         saveButton.frame = CGRectMake(40,40,40,40);
         UIImage *saveIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/save.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
@@ -414,7 +327,7 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
         saveButton.center = CGPointMake(x, y);
         [((UIViewController*)self).view addSubview: saveButton];
     }
-    if([[ShadowData sharedInstance] enabled_secure: "screenshotbtn"]){
+    if([[ShadowData sharedInstance] enabled: @"screenshotbtn"]){
         UIButton * scButton = [UIButton buttonWithType:UIButtonTypeCustom];
         scButton.frame = CGRectMake(40,40,40,40);
         UIImage *scIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/screenshot.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
@@ -422,7 +335,7 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
         [scButton addTarget:%c(ShadowHelper) action:@selector(screenshot) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
         double y = [UIScreen mainScreen].bounds.size.height * 0.80;
-        if([[ShadowData sharedInstance] enabled_secure: "seenbutton"]){
+        if([[ShadowData sharedInstance] enabled: @"seenbutton"]){
             scButton.center = CGPointMake(x, y - 100);
         }else{
             scButton.center = CGPointMake(x, y - 50);
@@ -436,11 +349,14 @@ static void (*orig_loaded)(id self, SEL _cmd);
 static void loaded(id self, SEL _cmd){
     if(![ShadowData isFirst]) {
         UIViewController *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Hello and Welcome!" description:@"Shadow X has been loaded and injected using librelic 2.0.\n\nUsage: Tap \"Shadow X\" to open the settings panel.\n\nHave fun, and remember to report any and all bugs! 👻\n\nDesigned privately by no5up and Kanji"];
+        UILabel *title = MSHookIvar<UILabel*>(alert,"_titleLabel");
+        RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)title];
+        [effect resume];
         [self presentViewController:alert animated:YES completion:nil];
         [[ShadowData sharedInstance] save];
     }
     orig_loaded(self, _cmd);
-    if(![[ShadowData sharedInstance] enabled_secure: "upload"]) return;
+    if(![[ShadowData sharedInstance] enabled: @"upload"]) return;
     if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]) return;
     UIButton * uploadButton = [UIButton buttonWithType:UIButtonTypeCustom];
     uploadButton.frame = CGRectMake(40,40,40,40);
@@ -493,14 +409,14 @@ static void uploadhandler(id self, SEL _cmd){
 static void (*orig_hidebtn)(id self, SEL _cmd);
 static void hidebtn(id self, SEL _cmd){
     orig_hidebtn(self, _cmd);
-    if(![[ShadowData sharedInstance] enabled_secure: "hidenewchat"]) return;
+    if(![[ShadowData sharedInstance] enabled: @"hidenewchat"]) return;
     //[[XLLogerManager manager] showOnWindow];
     [self performSelector:@selector(removeFromSuperview)];
 }
 
 static void (*orig_callconfirmaudio)(id self, SEL _cmd);
 static void callconfirmaudio(id self, SEL _cmd){
-    if(![[ShadowData sharedInstance] enabled_secure: "callconfirmaudio"]){
+    if(![[ShadowData sharedInstance] enabled: @"callconfirmaudio"]){
         orig_callconfirmaudio(self, _cmd);
         return;
     }
@@ -523,7 +439,7 @@ static void callconfirmaudio(id self, SEL _cmd){
 }
 static void (*orig_callconfirmvideo)(id self, SEL _cmd);
 static void callconfirmvideo(id self, SEL _cmd){
-    if(![[ShadowData sharedInstance] enabled_secure: "callconfirmvideo"]){
+    if(![[ShadowData sharedInstance] enabled: @"callconfirmvideo"]){
         orig_callconfirmvideo(self, _cmd);
         return;
     }
@@ -549,7 +465,7 @@ static void callconfirmvideo(id self, SEL _cmd){
 static void (*orig_hidebuttons)(id self, SEL _cmd, id arg1);
 static void hidebuttons(id self, SEL _cmd, id arg1){
     orig_hidebuttons(self, _cmd, arg1);
-    if(![[ShadowData sharedInstance] enabled_secure: "nocall"]) return;
+    if(![[ShadowData sharedInstance] enabled: @"nocall"]) return;
     [((UIView*)arg1) setHidden:YES];
 }
 
@@ -560,7 +476,7 @@ static void hidebuttons(id self, SEL _cmd, id arg1){
 static id (*orig_noemojis)(id self,SEL _cmd,NSAttributedString *arg1, struct CGSize arg2, id arg3, struct CGSize arg4);
 static id noemojis(id self,SEL _cmd,NSAttributedString *arg1, struct CGSize arg2, id arg3, struct CGSize arg4){
     orig_noemojis(self, _cmd, arg1, arg2, arg3, arg4);
-    if(![[ShadowData sharedInstance] enabled_secure: "friendmoji"]) return orig_noemojis(self, _cmd, arg1, arg2, arg3, arg4);
+    if(![[ShadowData sharedInstance] enabled: @"friendmoji"]) return orig_noemojis(self, _cmd, arg1, arg2, arg3, arg4);
     if([arg1.string rangeOfCharacterFromSet:[NSCharacterSet decimalDigitCharacterSet]].location != NSNotFound) return orig_noemojis(self, _cmd, arg1, arg2, arg3, arg4);
     return orig_noemojis(self, _cmd, [[NSAttributedString new] initWithString:@""], arg2, arg3, arg4);
 }
@@ -569,7 +485,7 @@ static id noemojis(id self,SEL _cmd,NSAttributedString *arg1, struct CGSize arg2
 //SCUnifiedProfileSquadmojiView setViewModel:
 static void (*orig_scramblefriends)(id self, SEL _cmd, NSArray *arg1);
 static void scramblefriends(id self, SEL _cmd, NSArray *arg1){
-    if(![[ShadowData sharedInstance] enabled_secure: "scramble"]){
+    if(![[ShadowData sharedInstance] enabled: @"scramble"]){
         orig_scramblefriends(self, _cmd, arg1);
         return;
     }
@@ -588,7 +504,7 @@ static void scramblefriends(id self, SEL _cmd, NSArray *arg1){
 //SCUnifiedProfileMyStoriesHeaderDataModel totalViewCount ->unsigned long long
 static unsigned long long (*orig_views)(id self, SEL _cmd);
 static unsigned long long views(id self, SEL _cmd){
-    if(![[ShadowData sharedInstance] enabled_secure: "spoofviews"])
+    if(![[ShadowData sharedInstance] enabled: @"spoofviews"])
         return orig_views(self, _cmd);
     return [[ShadowData sharedInstance].settings[@"spoofviews"] intValue];
 }
@@ -597,14 +513,14 @@ static unsigned long long views(id self, SEL _cmd){
 
 static unsigned long long (*orig_screenshots)(id self, SEL _cmd);
 static unsigned long long screenshots(id self, SEL _cmd){
-    if(![[ShadowData sharedInstance] enabled_secure: "spoofsc"])
+    if(![[ShadowData sharedInstance] enabled: @"spoofsc"])
         return orig_screenshots(self, _cmd);
     return [[ShadowData sharedInstance].settings[@"spoofsc"] intValue];
 }
 
 
 static bool noads(id self, SEL _cmd){
-    if([[ShadowData sharedInstance] enabled_secure: "noads"]){
+    if([[ShadowData sharedInstance] enabled: @"noads"]){
         return FALSE;
     }
     return TRUE;
@@ -613,7 +529,7 @@ static bool noads(id self, SEL _cmd){
 
 static BOOL (*orig_pinned)(id self, SEL _cmd, id arg1);
 static BOOL pinned(id self, SEL _cmd, id arg1){
-    if([[ShadowData sharedInstance] enabled_secure: "pinnedchats"]){
+    if([[ShadowData sharedInstance] enabled: @"pinnedchats"]){
         MSHookIvar<long long>(self,"_maxPinnedConversations") = [[ShadowData sharedInstance].settings[@"pinnedchats"] intValue];
     }
     return orig_pinned(self, _cmd, arg1);
@@ -625,7 +541,7 @@ static BOOL pinned(id self, SEL _cmd, id arg1){
 static void (*orig_updateghost)(id self, SEL _cmd, long arg1);
 static void updateghost(id self, SEL _cmd, long arg1){
     orig_updateghost(self, _cmd, arg1);
-    if([[ShadowData sharedInstance] enabled_secure: "eastereggs"]){
+    if([[ShadowData sharedInstance] enabled: @"eastereggs"]){
         id ghost = MSHookIvar<id>(self,"_ghost");
         UIImageView *normal = MSHookIvar<UIImageView *>(ghost, "_defaultBody");
         UIImageView *wink = MSHookIvar<UIImageView *>(ghost, "_winkBody");
@@ -648,9 +564,7 @@ static void updateghost(id self, SEL _cmd, long arg1){
 static void (*orig_settingstext)(id self, SEL _cmd);
 static void settingstext(id self, SEL _cmd){
     orig_settingstext(self, _cmd);
-    //NSLog(@"swifty: %@, I am %@",%c(SCSettingsImplementation.SCSettingsViewController),[self class]);
-    
-    UITableView * table = MSHookIvar<UITableView *>(self, "_scrollView");//swift????
+    UITableView * table = MSHookIvar<UITableView *>(self, "_scrollView");
     if(!table) return;
     if(![table respondsToSelector:@selector(paddedTableFooterView)]) return;
     UILabel * label = (UILabel *)[table performSelector:@selector(paddedTableFooterView)];
@@ -658,14 +572,12 @@ static void settingstext(id self, SEL _cmd){
         label.text = [[label.text componentsSeparatedByString:@"\n"][0] stringByAppendingString: @"\nShadow X (relicloader) | librelic 2.0"];  //@"\nlibrelic 2\nShadow X (relicloader)"];
         label.tag = 1;
     }
-    
-    // -[SCSettingsImplementation.SCSettingsViewController viewDidLoad]
 }
 
 
 id (*orig_location)(id self, SEL _cmd);
 id location(id self, SEL _cmd){
-    if(![[ShadowData sharedInstance] enabled_secure: "location"]) return orig_location(self, _cmd);
+    if(![[ShadowData sharedInstance] enabled: @"location"]) return orig_location(self, _cmd);
     double longitude = [[ShadowData sharedInstance].location[@"Longitude"] doubleValue];
     double latitude = [[ShadowData sharedInstance].location[@"Latitude"] doubleValue];
     CLLocation * newlocation = [[CLLocation alloc]initWithLatitude: latitude longitude: longitude];
@@ -729,10 +641,7 @@ uint64_t confirmshot(id self, SEL _cmd){
 - (void)addObserver:(id)arg1 selector:(SEL)arg2 name:(id)arg3 object:(id)arg4 {
     NSString *data = arg3;
     if([data isEqual: @"UIApplicationUserDidTakeScreenshotNotification"]){
-        if([[ShadowData sharedInstance] enabled: @"screenshot"]){
-            NSLog(@"Hey! Call this to trigger a recording: -[%@ %@]",[arg1 class],NSStringFromSelector(arg2));
-            RelicHookMessage([arg1 class], arg2, (void *)confirmshot);
-        }
+        RelicHookMessage([arg1 class], arg2, (void *)confirmshot);
     }
     if([data isEqual: @"SCUserDidScreenRecordContentNotification"]){
         if([[ShadowData sharedInstance] enabled: @"screenrecord"]){
@@ -744,7 +653,7 @@ uint64_t confirmshot(id self, SEL _cmd){
 %end
 
 void markSeen(SCOperaPageViewController * self, SEL _cmd){
-    if([[ShadowData sharedInstance] enabled_secure: "closeseen"]){
+    if([[ShadowData sharedInstance] enabled: @"closeseen"]){
         [ShadowHelper banner:@"Marking as SEEN" color:@"#00FF00"];
         [ShadowData sharedInstance].seen = TRUE;
         [((SCOperaViewController*)self.delegate) _advanceToNextPage:YES];
@@ -797,7 +706,7 @@ void noquickadd(id self, SEL _cmd){
 void (*orig_loaded3)(id self, SEL _cmd);
 void loaded3(id self, SEL _cmd){
     orig_loaded3(self, _cmd);
-    if([[ShadowData sharedInstance] enabled_secure: "scspambtn"]){
+    if([[ShadowData sharedInstance] enabled: @"scspambtn"]){
         UIButton * scButton = [UIButton buttonWithType:UIButtonTypeCustom];
         scButton.frame = CGRectMake(40,40,40,40);
         UIImage *scIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/screenshot.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
@@ -814,6 +723,33 @@ void screenshotspam(id self, SEL _cmd){
     for(int i = 0; i < 100; i ++)
     [self performSelector:@selector(userDidTakeScreenshot)];
 }
+
+//-[SCMapBitmojiLayerController setSelectedUserId:selectionStyle:showsCallouts:duration:]
+
+
+@interface SCMapBitmojiCluster:NSObject
+@property CLLocationCoordinate2D centerCoordinate;
+@end
+
+void (*orig_teleport)(id self, SEL _cmd, id arg1, BOOL arg2);
+void teleport(id self, SEL _cmd, id arg1, BOOL arg2){
+    orig_teleport(self, _cmd, arg1, arg2);
+    if([[ShadowData sharedInstance] enabled: @"teleport"]){
+        NSString *selected = [self performSelector:@selector(selectedUserId)];
+        if(selected){
+            NSDictionary<NSString*, id> *locations = [self performSelector:@selector(bitmojiClustersByUserId)];
+            SCMapBitmojiCluster *location = locations[selected];
+            if(location){
+                CLLocationCoordinate2D coord = location.centerCoordinate;
+                [ShadowData sharedInstance].location[@"Latitude"] = [NSString stringWithFormat:@"%f", coord.latitude];
+                [ShadowData sharedInstance].location[@"Longitude"] = [NSString stringWithFormat:@"%f", coord.longitude];
+                [[ShadowData sharedInstance] save];
+            }
+        }
+    }
+}
+
+
 
 //_sendSnapNoSendToViewWithAddToMyStory:0x0 recipientUsernames:0x285fa0180 recipientUserIds:0x2891b96e0 mischiefs:0x1f82e44a8 selectedOurStory:0x0 selectedCustomStories:0x285fa2760 businessIds:0x285fa2400 appStories:0x285fa0600
 
@@ -855,14 +791,10 @@ void screenshotspam(id self, SEL _cmd){
         RelicHookMessageEx(%c(SCContextV2BrowserPresenter),@selector(presentURL:preferExternal:metricParams:fromViewController:completion:), (void *)openurl2, &orig_openurl2);
         RelicHookMessage(%c(SCOperaPageViewController), @selector(saveSnap), (void *)save);
         RelicHookMessage(%c(SCOperaPageViewController), @selector(markSeen), (void *)markSeen);
-        
         RelicHookMessageEx(%c(SCChatMainViewController), @selector(viewDidFullyAppear), (void *)loaded3, &orig_loaded3);
         RelicHookMessage(%c(SCChatMainViewController), @selector(screenshot), (void *)screenshotspam);
-        
         RelicHookMessageEx(%c(SIGPullToRefreshView), @selector(setHeight:), (void *)updateghost, &orig_updateghost);
-                           
         RelicHookMessage(%c(SCSwipeViewContainerViewController), @selector(upload), (void *)uploadhandler);
-        //RelicHookMessageEx(%c(SIGPullToRefreshGhostView), @selector(rainbow), (void *)updateghost, &orig_updateghost);
         RelicHookMessageEx(%c(SCLocationManager), @selector(location), (void *)location, &orig_location);
         RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);
         RelicHookMessageEx(%c(SCPinnedConversationsDataCoordinator), @selector(hasPinnedConversationWithId:), (void *)pinned, &orig_pinned);
@@ -871,6 +803,7 @@ void screenshotspam(id self, SEL _cmd){
         RelicHookMessageEx(%c(SCChatViewHeader), @selector(attachCallButtonsPane), (void *)hidebuttons, &orig_hidebuttons);
         RelicHookMessageEx(%c(SCDiscoverFeedStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover, &orig_nodiscover);
         RelicHookMessageEx(%c(SCDiscoverFeedPublisherStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover2, &orig_nodiscover2);
+        RelicHookMessageEx(%c(SCMapBitmojiLayerController), @selector(setSelectedUserId:animated:), (void *)teleport, &orig_teleport);
         RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(isFullyVisible:), (void *)nomapswipe, &orig_nomapswipe);
         RelicHookMessageEx(%c(SIGNavigationBarView), @selector(initWithItems:leadingAligned:), (void *)nohighlights, &orig_nohighlights);
         RelicHookMessageEx(%c(SCSnapchatterTableViewCell), @selector(layoutSubviews), (void *)noquickadd, &orig_noquickadd);
@@ -889,87 +822,10 @@ void screenshotspam(id self, SEL _cmd){
 }
 
 %dtor {
-    //if(![ShadowData isFirst]) [[ShadowData sharedInstance] save];
     NSLog(@"[Shadow X + Relic] Hooks Unloaded (App Closed)");
 }
 
-/*
-%hook SCNMessagingMessage
-- (BOOL)canDelete{
-    return NO;
-}
-- (_Bool)isErasedSnapStatusMessage{
-    return NO;
-}
-%end
 
-%hook SCFideliusMessageEncryptionKeyTable
-- (BOOL)_deleteRecordsOlderThanTimestamp:(double)arg1{
-    return NO;
-}
-- (void)deleteRecord:(id)arg1 messageId:(long long)arg2{
-    %orig(nil,1);
-}
-%end
+//-[SCMapBitmojiLayerController setSelectedUserId:0x28090d600 animated:0x1]
+// -[SCMapBitmojiLayerController bitmojiLayerDidCancelTouches:0x282c23b00 didPanOrZoomMap:0x0]
 
-%hook SCChatFailedMessageDeleteActionData
-- (BOOL)isEqual:(id)arg1{
-    return NO;
-}
--(NSString *)messageId{
-    return nil;
-}
--(NSString *)conversationId{
-    return nil;
-}
-%end
-
-%hook SOJUGalleryServletDeleteEntriesResponse
-+ (void)registerMessageFields:(id)arg1{
-    %orig(nil);
-}
-%end
-
-%hook SCListsLists
-- (id)deleteListsWithMessage:(id)arg1 responseHandler:(id)arg2 callOptions:(id)arg3{
-    return nil;
-}
-
-%end
-
-%hook SCStackedChatViewModel
-- (BOOL)canStackMessage:(id)arg1 lastDeletedSequenceNumber:(unsigned long long)arg2{
-    return NO;
-}
-%end
-
-%hook SCStackedStickerChatViewModel
-- (BOOL)canStackMessage:(id)arg1 lastDeletedSequenceNumber:(unsigned long long)arg2{
-    return NO;
-}
-%end
-
-static BOOL (*orig_savehax)(id self, SEL _cmd);
-BOOL savehax(id self, SEL _cmd){
-    if([self messageType] == 18){
-        NSLog(@"Saving Message...");
-        return true;
-    }
-    return orig_savehax(self, _cmd);
-}
-
-static void (*orig_snapghost)(id self, SEL _cmd, long long arg1, id arg2, long long arg3, id arg4);
-static void snapghost(id self, SEL _cmd, long long arg1, id arg2, long long arg3, id arg4){
-    NSLog(@"Hello, you opened a snap!");
-    orig_snapghost(self, _cmd, arg1, arg2, arg3, arg4);
-}
-
-
-%ctor {
-    NSLog(@"RelicLoader Active :) if you arent no5up or kanji wyd bro");
-    RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isSaved), (void*)savehax, &orig_savehax);
-    RelicHookMessageEx(%c(SCNMessagingSnapManager), @selector(onSnapInteraction:conversationId:messageId:callback:), (void *)snapghost, &orig_snapghost);
-}
-
-
-*/

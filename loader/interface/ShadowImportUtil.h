@@ -36,7 +36,7 @@ typedef void(^URLHandler)(NSURL * url);
 }
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
 //-(void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey,id> *)info
-    NSLog(@"REACHED CRITICAL POINT 0");
+    NSLog(@"DONE! VC: %@",_vc);
     [_vc dismissViewControllerAnimated:YES completion:nil];
     if([info[UIImagePickerControllerMediaType] isEqualToString: @"public.movie"]){
         self.videoHandler(info[UIImagePickerControllerMediaURL]);
@@ -49,7 +49,11 @@ typedef void(^URLHandler)(NSURL * url);
     [_vc dismissViewControllerAnimated:YES completion:nil];
     self.videoHandler(nil);
 }
-
+- (void)navigationController:(UINavigationController *)navigationController
+      willShowViewController:(UIViewController *)viewController
+                    animated:(BOOL)animated{
+    NSLog(@"Custom event 0: %@",viewController);
+}
 /*
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info{
     NSLog(@"Running %@ '%@'", self.class, NSStringFromSelector(_cmd));
