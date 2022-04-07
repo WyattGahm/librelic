@@ -64,14 +64,15 @@
 -(void)_advanceToNextPage:(BOOL)arg1;
 @end
 
-SIGActionSheetCell * saveCell;
-id saved0 = nil;
-id saved1 = nil;
+//SIGActionSheetCell * saveCell;
 
 @interface ShadowHelper: NSObject
 @end
 
 @implementation ShadowHelper
++(void)screenshot{
+    [[NSNotificationCenter defaultCenter] postNotification: [NSNotification notificationWithName:UIApplicationUserDidTakeScreenshotNotification object:nil]];
+}
 +(void)banner:(NSString*)text color:(NSString *)color alpha:(float)alpha{
     if([[ShadowData sharedInstance] enabled_secure: "showbanners"]){
         unsigned rgbValue = 0;
@@ -165,8 +166,17 @@ static _Bool savehax(id self, SEL _cmd){
 
 static void (*orig_storyghost)(id self, SEL _cmd, id arg1);
 static void storyghost(id self, SEL _cmd, id arg1){
+    /*
+    NSLog(@"STORY: %@",[self performSelector:@selector(friendStoryViewingSession)]);
     if(![[ShadowData sharedInstance] enabled_secure: "storyghost"])
         orig_storyghost(self, _cmd, arg1);
+    */
+    if(![[ShadowData sharedInstance] enabled_secure: "storyghost"]) orig_storyghost(self, _cmd, arg1);
+    if(![[ShadowData sharedInstance] enabled_secure: "seenbutton"]) return;
+    if([ShadowData sharedInstance].seen == TRUE){
+        orig_storyghost(self, _cmd, arg1);
+        [ShadowData sharedInstance].seen = FALSE;
+    }
 }
 
 static void (*orig_snapghost)(id self, SEL _cmd, long long arg1, id arg2, long long arg3, void * arg4);
@@ -181,11 +191,14 @@ static void snapghost(id self, SEL _cmd, long long arg1, id arg2, long long arg3
 
 //no orig, were adding this
 static void save(SCOperaPageViewController* self, SEL _cmd) {
-    UIButton *button = [self.view.subviews lastObject];
-    UIImage *savedIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/saved.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
-    [button setImage: savedIcon forState:UIControlStateNormal];
-    button.userInteractionEnabled = NO;
-    
+    if(![[ShadowData sharedInstance] enabled: @"markfriends"]){
+        UIButton *button = [self.view.subviews lastObject];
+        if([button class] == %c(UIButton)){
+            UIImage *savedIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/saved.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+            [button setImage: savedIcon forState:UIControlStateNormal];
+            button.userInteractionEnabled = NO;
+        }
+    }
   NSArray *mediaArray = [self shareableMedias];
   if (mediaArray.count == 1) {
     SCOperaShareableMedia *mediaObject = (SCOperaShareableMedia *)[mediaArray firstObject];
@@ -305,7 +318,7 @@ static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4)
         //figure out internal way fo using selectors instead of gesture recog
         /* [newOption _addTarget:self action:@selector(saveSnap)]; */
         [newOption setTrailingAccessoryView:[[UIImageView alloc] initWithImage:[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/save.png"]]];
-        saveCell = newOption;
+        //saveCell = newOption;
         SCOperaPageViewController *opera = (SCOperaPageViewController *)[[self attachedToView] performSelector:@selector(_operaPageViewController)];
         for(int i = 0; i < newOption.gestureRecognizers.count;i++)
             (void)[[newOption.gestureRecognizers objectAtIndex:i] initWithTarget:opera action:@selector(saveSnap)];
@@ -321,13 +334,12 @@ static void (*orig_markheader)(id self, SEL _cmd, NSUInteger arg1);
 static void markheader(id self, SEL _cmd, NSUInteger arg1){
     orig_markheader(self, _cmd, arg1);
     @try{
-        if(![[ShadowData sharedInstance] enabled: @"notitle"]){
-            if([[ShadowData sharedInstance] enabled: @"customtitle"]){
-                ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = [ShadowData sharedInstance].settings[@"customtitle"];
-            }else{
-                ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = @"Shadow X";
-            }
+        if([[ShadowData sharedInstance] enabled: @"customtitle"]){
+            ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = [ShadowData sharedInstance].settings[@"customtitle"];
+        }else{
+            ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = @"Shadow X";
         }
+    
         SIGHeaderTitle *headerTitle = (SIGHeaderTitle *)[[[[(UIView *)self subviews] lastObject].subviews lastObject].subviews firstObject];
         UITapGestureRecognizer *singleFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:headerTitle action:@selector(_titleTapped:)];
         SIGLabel * label = [headerTitle.subviews firstObject];
@@ -358,31 +370,38 @@ static void markheader(id self, SEL _cmd, NSUInteger arg1){
 }
 
 static void (*orig_loaded2)(id self, SEL _cmd);
-static void loaded2(id self, SEL _cmd){
+static void loaded2(SCOperaPageViewController* self, SEL _cmd){
     orig_loaded2(self, _cmd);
     /*
     if([[ShadowData sharedInstance] enabled: @"folder"]){
         saveauto(self,[ShadowData sharedInstance].settings[@"folder"]);
     }
     */
+    [ShadowData sharedInstance].seen = FALSE;
+    NSDictionary* properties = (NSDictionary*)[[self performSelector:@selector(page)] performSelector:@selector(properties)];
     if([[ShadowData sharedInstance] enabled_secure: "seenbutton"]){
-        //if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]) return;
-        UIButton * seenButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        seenButton.frame = CGRectMake(40,40,40,40);
-        UIImage *seenIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/seen.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
-        [seenButton setImage: seenIcon forState:UIControlStateNormal];
-        [seenButton addTarget:self action:@selector(markSeen) forControlEvents:UIControlEventTouchUpInside];
-        if([[ShadowData sharedInstance] enabled_secure: "seenright"]){
-            double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
-            double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
-            seenButton.center = CGPointMake(x, y - 50);
+        
+        if([[ShadowData sharedInstance] enabled: @"markfriends"] && properties[@"discover_story_composite_id"] != nil){
+            [ShadowData sharedInstance].seen = TRUE;
         }else{
-            double x = [UIScreen mainScreen].bounds.size.width * 0.15;
-            double y = [UIScreen mainScreen].bounds.size.height * 0.80;
-            seenButton.center = CGPointMake(x, y);
+            
+            UIButton * seenButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            seenButton.frame = CGRectMake(40,40,40,40);
+            UIImage *seenIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/seen.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+            [seenButton setImage: seenIcon forState:UIControlStateNormal];
+            [seenButton addTarget:self action:@selector(markSeen) forControlEvents:UIControlEventTouchUpInside];
+            if([[ShadowData sharedInstance] enabled_secure: "seenright"]){
+                double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
+                double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
+                seenButton.center = CGPointMake(x, y - 50);
+            }else{
+                double x = [UIScreen mainScreen].bounds.size.width * 0.15;
+                double y = [UIScreen mainScreen].bounds.size.height * 0.80;
+                seenButton.center = CGPointMake(x, y);
+            }
+            [ShadowData sharedInstance].currentopera = self;
+            [((UIViewController*)self).view addSubview: seenButton];
         }
-        [ShadowData sharedInstance].currentopera = self;
-        [((UIViewController*)self).view addSubview: seenButton];
     }
     if([[ShadowData sharedInstance] enabled_secure: "savebutton"]){
         UIButton * saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -394,6 +413,21 @@ static void loaded2(id self, SEL _cmd){
         double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
         saveButton.center = CGPointMake(x, y);
         [((UIViewController*)self).view addSubview: saveButton];
+    }
+    if([[ShadowData sharedInstance] enabled_secure: "screenshotbtn"]){
+        UIButton * scButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        scButton.frame = CGRectMake(40,40,40,40);
+        UIImage *scIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/screenshot.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+        [scButton setImage: scIcon forState:UIControlStateNormal];
+        [scButton addTarget:%c(ShadowHelper) action:@selector(screenshot) forControlEvents:UIControlEventTouchUpInside];
+        double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
+        double y = [UIScreen mainScreen].bounds.size.height * 0.80;
+        if([[ShadowData sharedInstance] enabled_secure: "seenbutton"]){
+            scButton.center = CGPointMake(x, y - 100);
+        }else{
+            scButton.center = CGPointMake(x, y - 50);
+        }
+        [((UIViewController*)self).view addSubview: scButton];
     }
 }
 
@@ -588,13 +622,27 @@ static BOOL pinned(id self, SEL _cmd, id arg1){
 
 
 
-static BOOL (*orig_updateghost)(id self, SEL _cmd);
-static BOOL updateghost(id self, SEL _cmd){
+static void (*orig_updateghost)(id self, SEL _cmd, long arg1);
+static void updateghost(id self, SEL _cmd, long arg1){
+    orig_updateghost(self, _cmd, arg1);
     if([[ShadowData sharedInstance] enabled_secure: "eastereggs"]){
-        UIImageView * normal = MSHookIvar<UIImageView *>(self, "_defaultBody");
-        normal.image = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/rose.png"];
+        id ghost = MSHookIvar<id>(self,"_ghost");
+        UIImageView *normal = MSHookIvar<UIImageView *>(ghost, "_defaultBody");
+        UIImageView *wink = MSHookIvar<UIImageView *>(ghost, "_winkBody");
+        UIImageView *shocked = MSHookIvar<UIImageView *>(ghost, "_shockedBody");
+        
+        UIImage *rose = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/rose.png"];
+        
+        normal.image = rose;
+        wink.image = rose;
+        shocked.image = rose;
+        
+        UIImageView *hands = MSHookIvar<UIImageView *>(self,"_hands");
+        hands.alpha = 0;
+        NSArray *ghostConstraints = MSHookIvar<NSArray *>(self,"_normalGhostConstraints");
+        NSLayoutConstraint *bottom = [ghostConstraints lastObject];
+        bottom.constant = -1 * rose.size.height;
     }
-    return orig_updateghost(self, _cmd);
 }
 
 static void (*orig_settingstext)(id self, SEL _cmd);
@@ -682,6 +730,7 @@ uint64_t confirmshot(id self, SEL _cmd){
     NSString *data = arg3;
     if([data isEqual: @"UIApplicationUserDidTakeScreenshotNotification"]){
         if([[ShadowData sharedInstance] enabled: @"screenshot"]){
+            NSLog(@"Hey! Call this to trigger a recording: -[%@ %@]",[arg1 class],NSStringFromSelector(arg2));
             RelicHookMessage([arg1 class], arg2, (void *)confirmshot);
         }
     }
@@ -710,6 +759,72 @@ void markSeen(SCOperaPageViewController * self, SEL _cmd){
     }
     
 }
+uint64_t (*orig_nohighlights)(id self, SEL _cmd, id arg1, BOOL arg2);
+uint64_t nohighlights(id self, SEL _cmd, id arg1, BOOL arg2){
+    if([[ShadowData sharedInstance] enabled: @"highlights"]){
+        NSArray* items = (NSArray*)arg1;
+        if(![[items[0] performSelector:@selector(accessibilityIdentifier)] isEqualToString:@"arbar_create"])
+            return orig_nohighlights(self, _cmd, @[items[0],items[1],items[2],items[3]], arg2);
+    }
+    return orig_nohighlights(self, _cmd, arg1, arg2);
+}
+
+id (*orig_nodiscover)(id self, SEL _cmd);
+id nodiscover(UIView* self, SEL _cmd){
+    if([[ShadowData sharedInstance] enabled: @"discover"]){
+        if(self.superview.class != %c(SCHorizontalOneBounceCollectionView)) [self removeFromSuperview];
+    }
+    return orig_nodiscover(self, _cmd);
+}
+
+id (*orig_nodiscover2)(id self, SEL _cmd);
+id nodiscover2(UIView* self, SEL _cmd){
+    if([[ShadowData sharedInstance] enabled: @"discover"]){
+        if(self.superview.class != %c(SCHorizontalOneBounceCollectionView)) [self removeFromSuperview];
+    }
+    return orig_nodiscover2(self, _cmd);
+}
+
+
+void (*orig_noquickadd)(id self, SEL _cmd);
+void noquickadd(id self, SEL _cmd){
+    orig_noquickadd(self, _cmd);
+    if([[ShadowData sharedInstance] enabled: @"quickadd"]){
+        NSString *identifier = [self performSelector:@selector(accessibilityIdentifier)];
+        if([identifier isEqual:@"quick_add_item"]) [self performSelector:@selector(removeFromSuperview)];
+    }
+}
+void (*orig_loaded3)(id self, SEL _cmd);
+void loaded3(id self, SEL _cmd){
+    orig_loaded3(self, _cmd);
+    if([[ShadowData sharedInstance] enabled_secure: "scspambtn"]){
+        UIButton * scButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        scButton.frame = CGRectMake(40,40,40,40);
+        UIImage *scIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/screenshot.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+        [scButton setImage: scIcon forState:UIControlStateNormal];
+        [scButton addTarget:self action:@selector(screenshot) forControlEvents:UIControlEventTouchUpInside];
+        double x = [UIScreen mainScreen].bounds.size.width * 0.50; //tweak me? dynamic maybe?
+        double y = [UIScreen mainScreen].bounds.size.height * 0.10;
+        scButton.center = CGPointMake(x, y );
+        [((UIViewController*)self).view addSubview: scButton];
+    }
+}
+
+void screenshotspam(id self, SEL _cmd){
+    for(int i = 0; i < 100; i ++)
+    [self performSelector:@selector(userDidTakeScreenshot)];
+}
+
+//_sendSnapNoSendToViewWithAddToMyStory:0x0 recipientUsernames:0x285fa0180 recipientUserIds:0x2891b96e0 mischiefs:0x1f82e44a8 selectedOurStory:0x0 selectedCustomStories:0x285fa2760 businessIds:0x285fa2400 appStories:0x285fa0600
+
+
+//_sendToRecipients:storiesPostingConfig:businessIds:groups:appStories:additionalText:
+//_handleRequestAndInviteFeaturesAndSendSnap:0x2879153b0 sendToRecipients:0x0 showSendToLoadingOverlay:0x0 recipientUsernames:0x285fa0180 mischiefs:0x1f82e44a8]
+//_sendSnapNoSendToViewWithAddToMyStoryAfterInterceptorCheck:0x0 recipientUsernames:0x285fa0180 recipientUserIds:0x2891b96e0 mischiefs:0x1f82e44a8 selectedOurStory:0x0 selectedCustomStories:0x285fa2760 businessIds:0x285fa2400 appStories:0x285fa0600]
+ 
+
+
+//_handleRequestAndInviteFeaturesAndSendSnap:sendToRecipients:showSendToLoadingOverlay:recipientUsernames:mischiefs:
 
 %ctor{
     /*
@@ -740,15 +855,25 @@ void markSeen(SCOperaPageViewController * self, SEL _cmd){
         RelicHookMessageEx(%c(SCContextV2BrowserPresenter),@selector(presentURL:preferExternal:metricParams:fromViewController:completion:), (void *)openurl2, &orig_openurl2);
         RelicHookMessage(%c(SCOperaPageViewController), @selector(saveSnap), (void *)save);
         RelicHookMessage(%c(SCOperaPageViewController), @selector(markSeen), (void *)markSeen);
+        
+        RelicHookMessageEx(%c(SCChatMainViewController), @selector(viewDidFullyAppear), (void *)loaded3, &orig_loaded3);
+        RelicHookMessage(%c(SCChatMainViewController), @selector(screenshot), (void *)screenshotspam);
+        
+        RelicHookMessageEx(%c(SIGPullToRefreshView), @selector(setHeight:), (void *)updateghost, &orig_updateghost);
+                           
         RelicHookMessage(%c(SCSwipeViewContainerViewController), @selector(upload), (void *)uploadhandler);
-        RelicHookMessageEx(%c(SIGPullToRefreshGhostView), @selector(rainbow), (void *)updateghost, &orig_updateghost);
+        //RelicHookMessageEx(%c(SIGPullToRefreshGhostView), @selector(rainbow), (void *)updateghost, &orig_updateghost);
         RelicHookMessageEx(%c(SCLocationManager), @selector(location), (void *)location, &orig_location);
         RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);
         RelicHookMessageEx(%c(SCPinnedConversationsDataCoordinator), @selector(hasPinnedConversationWithId:), (void *)pinned, &orig_pinned);
         RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(viewDidLoad), (void *)loaded, &orig_loaded);
         RelicHookMessageEx(%c(SCContextV2SwipeUpGestureTracker), @selector(setPresented:animated:source:completion:), (void *)savebtn, &orig_savebtn);
         RelicHookMessageEx(%c(SCChatViewHeader), @selector(attachCallButtonsPane), (void *)hidebuttons, &orig_hidebuttons);
+        RelicHookMessageEx(%c(SCDiscoverFeedStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover, &orig_nodiscover);
+        RelicHookMessageEx(%c(SCDiscoverFeedPublisherStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover2, &orig_nodiscover2);
         RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(isFullyVisible:), (void *)nomapswipe, &orig_nomapswipe);
+        RelicHookMessageEx(%c(SIGNavigationBarView), @selector(initWithItems:leadingAligned:), (void *)nohighlights, &orig_nohighlights);
+        RelicHookMessageEx(%c(SCSnapchatterTableViewCell), @selector(layoutSubviews), (void *)noquickadd, &orig_noquickadd);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowShowsAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowEmbeddedWebViewAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowPublicStoriesAds), (void *)noads);

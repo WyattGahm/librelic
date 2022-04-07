@@ -45,6 +45,11 @@ typedef void(^URLHandler)(NSURL * url);
     }
    
 }
+-(void)imagePickerControllerDidCancel:(UIImagePickerController *)picker{
+    [_vc dismissViewControllerAnimated:YES completion:nil];
+    self.videoHandler(nil);
+}
+
 /*
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info{
     NSLog(@"Running %@ '%@'", self.class, NSStringFromSelector(_cmd));
