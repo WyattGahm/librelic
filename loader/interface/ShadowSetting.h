@@ -39,9 +39,6 @@
     return self;
 }
 -(instancetype)fromArray:(NSArray *)array{
-    if(array.count < 6){
-        NSLog(@"error for setting %@", array[1]);
-    }
     self.section = array[0];
     self.key = array[1];
     self.title = array[2];
@@ -59,7 +56,6 @@
     NSMutableDictionary *dict = [NSMutableDictionary new];
     for(ShadowSetting *setting in data)
         [dict setObject:setting.value forKey:setting.key];
-    NSLog(@"FINISHED MAKEDICT -> %@",dict);
     return dict;
 }
 -(NSArray*)getData{

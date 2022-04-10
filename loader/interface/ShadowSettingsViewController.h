@@ -20,13 +20,47 @@
 }
 
 -(void)cofigureTableview{
-    self.table = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStylePlain];
+    NSInteger height = 67;
+    
+    UINavigationBar *nav = [self makeNav];
+    
+    self.table = [[UITableView alloc] initWithFrame:CGRectMake(0, nav.bounds.size.height, self.view.bounds.size.width, self.view.bounds.size.height - nav.bounds.size.height) style:UITableViewStylePlain];
     self.table.delegate = self;
     self.table.dataSource = self;
     if([[ShadowData sharedInstance] enabled: @"darkmode"]){
         self.table.backgroundColor = [UIColor colorWithRed: 30/255.0 green: 30/255.0 blue: 30/255.0 alpha: 1.00];
     }
+    [self.view addSubview: nav];
     [self.view addSubview:self.table];
+}
+
+-(UINavigationBar*)makeNav{
+    UINavigationBar *nav = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 56)];
+    if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+        [nav setTitleTextAttributes: @{
+            NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Bold" size:19],
+            NSForegroundColorAttributeName:[UIColor whiteColor]
+        }];
+    }else{
+        [nav setTitleTextAttributes: @{
+            NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Bold" size:19]
+        }];
+    }
+    UINavigationItem* navItem = [[UINavigationItem alloc] initWithTitle:@"Shadow Settings"];
+    UIBarButtonItem* more = [[UIBarButtonItem alloc] initWithTitle: @"More" style:UIBarButtonItemStylePlain target:self action:@selector(morePressed:)];
+    UIBarButtonItem* back = [[UIBarButtonItem alloc] initWithTitle: @"Back" style:UIBarButtonItemStylePlain target:self action:@selector(backPressed:)];
+    [more setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Demibold" size:17]} forState:UIControlStateNormal];
+    [back setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Demibold" size:17]} forState:UIControlStateNormal];
+    navItem.leftBarButtonItem = more;
+    navItem.rightBarButtonItem = back;
+    [nav setItems:@[navItem]];
+    [nav layoutSubviews];
+    
+    if([[ShadowData sharedInstance] enabled: @"darkmode"]){
+        nav.tintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
+        nav.barTintColor = [UIColor colorWithRed: 18/255.0 green: 18/255.0 blue: 18/255.0 alpha: 1.00];
+    }
+    return nav;
 }
 
 -(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -40,11 +74,9 @@
 
 -(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
     if(section == 0){
-        //navigation bar
-        return 60;
+        return 0;
     }else{
-        //div
-        return 1;
+        return 13;
     }
 }
 
@@ -73,7 +105,7 @@
     
     
     if([setting.type isEqualToString:@"image"]){
-        cell = [UITableViewCell new];//[self.table dequeueReusableCellWithIdentifier:setting.section];
+        cell = [UITableViewCell new];
         UIImage * header = [UIImage imageWithContentsOfFile:setting.value];
         UIImageView *imageView = [[UIImageView new] initWithImage: header];
         imageView.contentMode = UIViewContentModeScaleToFill;
@@ -181,35 +213,20 @@
 }
 */
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if(section == 0){
-        UINavigationBar *nav = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, 100)];
+    if(section){
+        UILabel *title = [UILabel new];
+        title.text = [[[ShadowData sharedInstance] orderedSections][section] uppercaseString];
+        title.font = [UIFont fontWithName:@"AvenirNext-Bold" size:13];
+        title.textAlignment = NSTextAlignmentCenter;
         if([[ShadowData sharedInstance] enabled:@"darkmode"]){
-            [nav setTitleTextAttributes: @{
-                NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Bold" size:19],
-                NSForegroundColorAttributeName:[UIColor whiteColor]
-            }];
+            title.backgroundColor = [UIColor colorWithRed: 30/255.0 green: 30/255.0 blue: 30/255.0 alpha: 1.00];
+            //title.textColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
+            title.textColor = [UIColor whiteColor];
         }else{
-            [nav setTitleTextAttributes: @{
-                NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Bold" size:19]
-            }];
+            title.backgroundColor = [UIColor whiteColor];
         }
-        UINavigationItem* navItem = [[UINavigationItem alloc] initWithTitle:@"Shadow Settings"];
-        UIBarButtonItem* more = [[UIBarButtonItem alloc] initWithTitle: @"More" style:UIBarButtonItemStylePlain target:self action:@selector(morePressed:)];
-        UIBarButtonItem* back = [[UIBarButtonItem alloc] initWithTitle: @"Back" style:UIBarButtonItemStylePlain target:self action:@selector(backPressed:)];
-        [more setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Demibold" size:17]} forState:UIControlStateNormal];
-        [back setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Demibold" size:17]} forState:UIControlStateNormal];
-        navItem.leftBarButtonItem = more;
-        navItem.rightBarButtonItem = back;
-        [nav setItems:@[navItem]];
-        [nav layoutSubviews];
-        
-        if([[ShadowData sharedInstance] enabled: @"darkmode"]){
-            nav.tintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
-            nav.barTintColor = [UIColor colorWithRed: 18/255.0 green: 18/255.0 blue: 18/255.0 alpha: 1.00];
-        }
-        return nav;
+        return title;
     }else{
-        //[[[ShadowData sharedInstance] layout] allValues][section][0];
         return nil;
     }
 }

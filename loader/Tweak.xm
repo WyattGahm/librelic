@@ -70,6 +70,11 @@
 @end
 
 @implementation ShadowHelper
++(void)screenshot{
+    [[ShadowData sharedInstance] disable:@"screenshot"];
+     [[NSNotificationCenter defaultCenter] postNotification: [NSNotification notificationWithName:UIApplicationUserDidTakeScreenshotNotification object:nil]];
+    [[ShadowData sharedInstance] enable:@"screenshot"];
+ }
 +(void)banner:(NSString*)text color:(NSString *)color alpha:(float)alpha{
     if([[ShadowData sharedInstance] enabled: @"showbanners"]){
         unsigned rgbValue = 0;
@@ -170,7 +175,7 @@ static void snapghost(id self, SEL _cmd, long long arg1, id arg2, long long arg3
 
 //no orig, were adding this
 static void save(SCOperaPageViewController* self, SEL _cmd) {
-    if(![[ShadowData sharedInstance] enabled: @"markfriends"]){
+    if([[ShadowData sharedInstance] enabled: @"savebutton"]){
         UIButton *button = [self.view.subviews lastObject];
         if([button class] == %c(UIButton)){
             UIImage *savedIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/saved.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
@@ -178,6 +183,7 @@ static void save(SCOperaPageViewController* self, SEL _cmd) {
             button.userInteractionEnabled = NO;
         }
     }
+    
   NSArray *mediaArray = [self shareableMedias];
   if (mediaArray.count == 1) {
     SCOperaShareableMedia *mediaObject = (SCOperaShareableMedia *)[mediaArray firstObject];
@@ -251,17 +257,22 @@ static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4)
 static void (*orig_markheader)(id self, SEL _cmd, NSUInteger arg1);
 static void markheader(id self, SEL _cmd, NSUInteger arg1){
     orig_markheader(self, _cmd, arg1);
+    
     @try{
-        if([[ShadowData sharedInstance] enabled: @"customtitle"]){
-            ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = [ShadowData sharedInstance].settings[@"customtitle"];
-        }else{
-            ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = @"Shadow X";
+        if(![[ShadowData sharedInstance] enabled: @"hideshadow"]){
+            if([[ShadowData sharedInstance] enabled: @"customtitle"]){
+                ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = [ShadowData sharedInstance].settings[@"customtitle"];
+            }else{
+                ((SIGHeaderItem*)[self performSelector:@selector(currentHeaderItem)]).title = @"Shadow X";
+            }
         }
+        
     
         SIGHeaderTitle *headerTitle = (SIGHeaderTitle *)[[[[(UIView *)self subviews] lastObject].subviews lastObject].subviews firstObject];
         UITapGestureRecognizer *singleFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:headerTitle action:@selector(_titleTapped:)];
         SIGLabel * label = [headerTitle.subviews firstObject];
         [label addGestureRecognizer:singleFingerTap];
+        if([[ShadowData sharedInstance] enabled: @"hideshadow"]) return;
         if(![[label class] isEqual: %c(SIGLabel)])return;
         SIGLabel *subtitle = headerTitle.subviews[1];
         for(int i = 2; i < headerTitle.subviews.count; i++) [headerTitle.subviews[i] removeFromSuperview]; //remove indicators
@@ -291,6 +302,15 @@ static void (*orig_loaded2)(id self, SEL _cmd);
 static void loaded2(SCOperaPageViewController* self, SEL _cmd){
     orig_loaded2(self, _cmd);
     
+    if([[ShadowData sharedInstance] enabled:@"looping"]){
+        [self updatePropertiesWithLooping: YES];
+    }
+    
+    long btnsz = 40;
+    if([[ShadowData sharedInstance] enabled: @"buttonsize"]){
+        btnsz = [[ShadowData sharedInstance].settings[@"buttonsize"] intValue];
+    }
+    
     [ShadowData sharedInstance].seen = FALSE;
     NSDictionary* properties = (NSDictionary*)[[self performSelector:@selector(page)] performSelector:@selector(properties)];
     if([[ShadowData sharedInstance] enabled: @"seenbutton"]){
@@ -300,14 +320,14 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
         }else{
             
             UIButton * seenButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            seenButton.frame = CGRectMake(40,40,40,40);
+            seenButton.frame = CGRectMake(btnsz,btnsz,btnsz,btnsz);
             UIImage *seenIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/seen.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
             [seenButton setImage: seenIcon forState:UIControlStateNormal];
             [seenButton addTarget:self action:@selector(markSeen) forControlEvents:UIControlEventTouchUpInside];
             if([[ShadowData sharedInstance] enabled: @"seenright"]){
                 double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
                 double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
-                seenButton.center = CGPointMake(x, y - 50);
+                seenButton.center = CGPointMake(x, y - (btnsz + 10));
             }else{
                 double x = [UIScreen mainScreen].bounds.size.width * 0.15;
                 double y = [UIScreen mainScreen].bounds.size.height * 0.80;
@@ -316,9 +336,24 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
             [((UIViewController*)self).view addSubview: seenButton];
         }
     }
+    if([[ShadowData sharedInstance] enabled: @"screenshotbtn"]){
+        UIButton * scButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        scButton.frame = CGRectMake(0,0,btnsz,btnsz);
+        UIImage *scIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/screenshot.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+        [scButton setImage: scIcon forState:UIControlStateNormal];
+        [scButton addTarget:%c(ShadowHelper) action:@selector(screenshot) forControlEvents:UIControlEventTouchUpInside];
+        double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
+        double y = [UIScreen mainScreen].bounds.size.height * 0.80;
+        if([[ShadowData sharedInstance] enabled: @"seenbutton"]){
+            scButton.center = CGPointMake(x, y - (2* (btnsz + 10)));
+        }else{
+            scButton.center = CGPointMake(x, y -(btnsz +10));
+        }
+        [((UIViewController*)self).view addSubview: scButton];
+    }
     if([[ShadowData sharedInstance] enabled: @"savebutton"]){
         UIButton * saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        saveButton.frame = CGRectMake(40,40,40,40);
+        saveButton.frame = CGRectMake(0,0,btnsz,btnsz);
         UIImage *saveIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/save.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
         [saveButton setImage: saveIcon forState:UIControlStateNormal];
         [saveButton addTarget:self action:@selector(saveSnap) forControlEvents:UIControlEventTouchUpInside];
@@ -327,26 +362,18 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
         saveButton.center = CGPointMake(x, y);
         [((UIViewController*)self).view addSubview: saveButton];
     }
-    if([[ShadowData sharedInstance] enabled: @"screenshotbtn"]){
-        UIButton * scButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        scButton.frame = CGRectMake(40,40,40,40);
-        UIImage *scIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/screenshot.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
-        [scButton setImage: scIcon forState:UIControlStateNormal];
-        [scButton addTarget:%c(ShadowHelper) action:@selector(screenshot) forControlEvents:UIControlEventTouchUpInside];
-        double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
-        double y = [UIScreen mainScreen].bounds.size.height * 0.80;
-        if([[ShadowData sharedInstance] enabled: @"seenbutton"]){
-            scButton.center = CGPointMake(x, y - 100);
-        }else{
-            scButton.center = CGPointMake(x, y - 50);
-        }
-        [((UIViewController*)self).view addSubview: scButton];
-    }
+   
 }
 
 
 static void (*orig_loaded)(id self, SEL _cmd);
 static void loaded(id self, SEL _cmd){
+    
+    long btnsz = 40;
+    if([[ShadowData sharedInstance] enabled: @"buttonsize"]){
+        btnsz = [[ShadowData sharedInstance].settings[@"buttonsize"] intValue];
+    }
+    
     if(![ShadowData isFirst]) {
         UIViewController *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Hello and Welcome!" description:@"Shadow X has been loaded and injected using librelic 2.0.\n\nUsage: Tap \"Shadow X\" to open the settings panel.\n\nHave fun, and remember to report any and all bugs! 👻\n\nDesigned privately by no5up and Kanji"];
         UILabel *title = MSHookIvar<UILabel*>(alert,"_titleLabel");
@@ -359,7 +386,7 @@ static void loaded(id self, SEL _cmd){
     if(![[ShadowData sharedInstance] enabled: @"upload"]) return;
     if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]) return;
     UIButton * uploadButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    uploadButton.frame = CGRectMake(40,40,40,40);
+    uploadButton.frame = CGRectMake(0,0,btnsz,btnsz);
     UIImage *uploadIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/upload.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
     [uploadButton setImage:uploadIcon forState:UIControlStateNormal];
     [uploadButton addTarget:self action:@selector(upload) forControlEvents:UIControlEventTouchUpInside];
@@ -414,52 +441,6 @@ static void hidebtn(id self, SEL _cmd){
     [self performSelector:@selector(removeFromSuperview)];
 }
 
-static void (*orig_callconfirmaudio)(id self, SEL _cmd);
-static void callconfirmaudio(id self, SEL _cmd){
-    if(![[ShadowData sharedInstance] enabled: @"callconfirmaudio"]){
-        orig_callconfirmaudio(self, _cmd);
-        return;
-    }
-    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Woah!" description:@"Did you mean to start an audio call?"];
-    
-    SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Call" actionBlock:^(){
-        orig_callconfirmaudio(self, _cmd);
-        [alert dismissViewControllerAnimated:YES completion:nil];
-    }];
-    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
-        [alert dismissViewControllerAnimated:YES completion:nil];
-    }];
-    
-    
-    [alert _setActions: @[back,call]];
-    
-    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
-    [topVC presentViewController: alert animated: true completion:nil];
-}
-static void (*orig_callconfirmvideo)(id self, SEL _cmd);
-static void callconfirmvideo(id self, SEL _cmd){
-    if(![[ShadowData sharedInstance] enabled: @"callconfirmvideo"]){
-        orig_callconfirmvideo(self, _cmd);
-        return;
-    }
-    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Woah!" description:@"Did you mean to start a video call?"];
-    
-    SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Call" actionBlock:^(){
-        orig_callconfirmvideo(self, _cmd);
-        [alert dismissViewControllerAnimated:YES completion:nil];
-    }];
-    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
-        [alert dismissViewControllerAnimated:YES completion:nil];
-    }];
-    
-    
-    [alert _setActions: @[back,call]];
-    
-    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
-    [topVC presentViewController: alert animated: true completion:nil];
-}
 
 
 static void (*orig_hidebuttons)(id self, SEL _cmd, id arg1);
@@ -618,9 +599,9 @@ long nomapswipe(id self, SEL _cmd, id arg1){
     return orig_nomapswipe(self, _cmd, arg1);
 }
 
-uint64_t confirmshot(id self, SEL _cmd){
-    uint64_t (*orig)(id self, SEL _cmd) = (typeof(orig))class_getMethodImplementation([self class], _cmd);
-    if(![[ShadowData sharedInstance] enabled: @"scpassthrough"] && [[ShadowData sharedInstance] enabled: @"screenshotconfirm"]){
+void confirmshot(id self, SEL _cmd){
+    void (*orig)(id self, SEL _cmd) = (typeof(orig))class_getMethodImplementation([self class], _cmd);
+    if([[ShadowData sharedInstance] enabled: @"screenshotconfirm"]){
         SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Screenshot" description:@"Should we notify the app that you took a screenshot?"];
         
         SIGAlertDialogAction *screenshot = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Screenshot" actionBlock:^(){
@@ -635,6 +616,10 @@ uint64_t confirmshot(id self, SEL _cmd){
         while (topVC.presentedViewController) topVC = topVC.presentedViewController;
         [topVC presentViewController: alert animated: true completion:nil];
     }
+    if([[ShadowData sharedInstance] enabled: @"screenshot"]){
+        return;
+    }
+    orig(self, _cmd);
 }
 
 %hook NSNotificationCenter
@@ -707,8 +692,14 @@ void (*orig_loaded3)(id self, SEL _cmd);
 void loaded3(id self, SEL _cmd){
     orig_loaded3(self, _cmd);
     if([[ShadowData sharedInstance] enabled: @"scspambtn"]){
+        
+        long btnsz = 40;
+        if([[ShadowData sharedInstance] enabled: @"buttonsize"]){
+            btnsz = [[ShadowData sharedInstance].settings[@"buttonsize"] intValue];
+        }
+        
         UIButton * scButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        scButton.frame = CGRectMake(40,40,40,40);
+        scButton.frame = CGRectMake(0,0,btnsz,btnsz);
         UIImage *scIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/screenshot.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
         [scButton setImage: scIcon forState:UIControlStateNormal];
         [scButton addTarget:self action:@selector(screenshot) forControlEvents:UIControlEventTouchUpInside];
@@ -758,9 +749,49 @@ void teleport(id self, SEL _cmd, id arg1, BOOL arg2){
 //_handleRequestAndInviteFeaturesAndSendSnap:0x2879153b0 sendToRecipients:0x0 showSendToLoadingOverlay:0x0 recipientUsernames:0x285fa0180 mischiefs:0x1f82e44a8]
 //_sendSnapNoSendToViewWithAddToMyStoryAfterInterceptorCheck:0x0 recipientUsernames:0x285fa0180 recipientUserIds:0x2891b96e0 mischiefs:0x1f82e44a8 selectedOurStory:0x0 selectedCustomStories:0x285fa2760 businessIds:0x285fa2400 appStories:0x285fa0600]
  
-
+void (*orig_callstart)(id self, SEL _cmd, long arg1);
+void callstart(id self, SEL _cmd, long arg1){
+    if(![[ShadowData sharedInstance] enabled: @"callconfirm"]){
+        orig_callstart(self, _cmd, arg1);
+        return;
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Woah!" description:@"Did you mean to start a call?"];
+        SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Call" actionBlock:^(){
+            orig_callstart(self, _cmd, arg1);
+            [alert dismissViewControllerAnimated:YES completion:nil];
+        }];
+        SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
+            [alert dismissViewControllerAnimated:YES completion:nil];
+        }];
+        [alert _setActions: @[back,call]];
+        NSLog(@"looks like we bugged going in");
+        UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+        while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+        [topVC presentViewController: alert animated: true completion:nil];
+        NSLog(@"made it to the end so were prolly hanging then crashing");
+    });
+    
+}
 
 //_handleRequestAndInviteFeaturesAndSendSnap:sendToRecipients:showSendToLoadingOverlay:recipientUsernames:mischiefs:
+BOOL (*orig_cellswipe)(id self, SEL _cmd);
+BOOL cellswipe(id self, SEL _cmd){
+    if([[ShadowData sharedInstance] enabled: @"cellswipe"]){
+        return YES;
+    }else{
+        return orig_cellswipe(self, _cmd);
+    }
+}
+
+
+id (*orig_chat_test)(id self, SEL _cmd);
+id chat_test(id self, SEL _cmd){
+    id ret = orig_chat_test(self, _cmd);
+    NSLog(@"CHAT: %@", ret);
+    return ret;
+}
+
 
 %ctor{
     /*
@@ -778,8 +809,6 @@ void teleport(id self, SEL _cmd, id arg1, BOOL arg2){
         RelicHookMessageEx(%c(SCFriendsFeedCreateButton), @selector(resetCreateButton), (void *)hidebtn, &orig_hidebtn);
         RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isSaved), (void *)savehax, &orig_savehax);
         RelicHookMessageEx(%c(SIGHeader), @selector(_stylize:), (void *)markheader, &orig_markheader);
-        RelicHookMessageEx(%c(SCTCallButtons), @selector(_audioButtonPressed), (void *)callconfirmaudio, &orig_callconfirmaudio);
-        RelicHookMessageEx(%c(SCTCallButtons), @selector(_videoButtonPressed), (void *)callconfirmvideo,  &orig_callconfirmvideo);
         RelicHookMessageEx(%c(SCFriendsFeedFriendmojiViewModel), @selector(initWithFriendmojiText:friendmojiTextSize:expiringStreakFriendmojiText:expiringStreakFriendmojiTextSize:), (void *)noemojis, &orig_noemojis);
         RelicHookMessageEx(%c(SCUnifiedProfileMyStoriesHeaderDataModel), @selector(totalViewCount), (void *)views, &orig_views);
         RelicHookMessageEx(%c(SCUnifiedProfileMyStoriesHeaderDataModel), @selector(totalScreenshotCount), (void *)screenshots, &orig_screenshots);
@@ -803,10 +832,12 @@ void teleport(id self, SEL _cmd, id arg1, BOOL arg2){
         RelicHookMessageEx(%c(SCChatViewHeader), @selector(attachCallButtonsPane), (void *)hidebuttons, &orig_hidebuttons);
         RelicHookMessageEx(%c(SCDiscoverFeedStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover, &orig_nodiscover);
         RelicHookMessageEx(%c(SCDiscoverFeedPublisherStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover2, &orig_nodiscover2);
+        RelicHookMessageEx(%c(SCTalkChatSession), @selector(_composerCallButtonsOnStartCallMedia:), (void *)callstart, &orig_callstart);
         RelicHookMessageEx(%c(SCMapBitmojiLayerController), @selector(setSelectedUserId:animated:), (void *)teleport, &orig_teleport);
         RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(isFullyVisible:), (void *)nomapswipe, &orig_nomapswipe);
         RelicHookMessageEx(%c(SIGNavigationBarView), @selector(initWithItems:leadingAligned:), (void *)nohighlights, &orig_nohighlights);
         RelicHookMessageEx(%c(SCSnapchatterTableViewCell), @selector(layoutSubviews), (void *)noquickadd, &orig_noquickadd);
+        RelicHookMessageEx(%c(SIGPanningGestureRecognizer), @selector(isEdgePan), (void *)cellswipe, &orig_cellswipe);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowShowsAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowEmbeddedWebViewAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowPublicStoriesAds), (void *)noads);
@@ -816,6 +847,8 @@ void teleport(id self, SEL _cmd, id arg1, BOOL arg2){
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowStoryAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowUserStoriesAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowAds), (void *)noads);
+        
+        RelicHookMessageEx(%c(SCChatConversationUpdater), @selector(activeConversationData), (void *)chat_test, &orig_chat_test);
     });
     NSLog(@"[Shadow X + Relic] Hooks Initialized and Tweak Loaded");
     [[ShadowData sharedInstance] load];
@@ -829,3 +862,53 @@ void teleport(id self, SEL _cmd, id arg1, BOOL arg2){
 //-[SCMapBitmojiLayerController setSelectedUserId:0x28090d600 animated:0x1]
 // -[SCMapBitmojiLayerController bitmojiLayerDidCancelTouches:0x282c23b00 didPanOrZoomMap:0x0]
 
+//<SCChatMessageCellViewModel: 0x28045b020>
+
+
+//SCChatV3MessageStateHandler
+//SCMessageChatViewModel$senderColor working yay
+//SCSavableItemChatTableViewCell$layoutSubviews?
+
+
+/*
+ SCChatMessageCellViewModel
+ SCChatConversationUpdater
+ SCChatSavableViewModel??
+ SCChatUIParameterProvider???
+ SCChatConversationUpdater
+ SCAArroyoMixedModeConversationData?
+ [SCNMessagingMessageContent
+ SCNativeConversationContainer
+ 
+ SCChatViewControllerV3
+ SCChatConversationViewModelV3!
+ SCChatConversationUpdater!
+ SCChatConversationUpdaterListenerAnnouncer!
+ SCChatTableViewV3Presenter _markMessageAsSeenFrom:to:
+ SCChatMessageViewModelConfig
+ SCChatUIBatchMessageParsingData
+ SCChatUIMessageParser
+ SCChatActiveConversationData!
+ 
+ SCChatConversationUpdater setNumberOfMessagesFromLastUpdate
+ SCNativeConversationContainer messageRetentionInMinutes
+ 
+ SCNativeConversationContainer is24HourRetentionEnabled
+ SCNMessagingConversationRetentionPolicy readRetentionTimeSeconds
+ 
+ SCChatTableViewV3Presenter _completeReloadForConversationViewModel:previousDistanceToBottom:isMessageAddedAtTheEnd:wasItemRemoved:isNewConversation:wasScrollAtBottomBeforeUpdate:isLastMessageSentBySelf:
+ SCLegacyChatTooltipsServiceImpl shouldDisplayChatDeleteMsgInChat:
+ 
+ SCChatConversationUpdater addViewModel:toArray:updateCount:
+ vSCChatUIBatchMessageParsingData
+ SCNMessagingConversationRetentionPolicy initWithSendReadMessage:sendReleaseMessages:unreadRetentionTimeSeconds:readRetentionTimeSeconds:
+ */
+
+
+//SCModularCallViewController
+//SCTCallViewWrapper
+//SCTCallViewContext
+//SCTalkV3Manager
+//[SCModularCallEntryPoint
+
+//SCTalkChatSession _composerCallButtonsOnStartCallMedia:!!!!!
