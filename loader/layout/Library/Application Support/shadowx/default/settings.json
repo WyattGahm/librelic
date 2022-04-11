@@ -1,5 +1,5 @@
 [
-    ["header","image", "----", "----", "image", "/Library/Application Support/shadowx/header0.png"],
+    ["header","image", "----", "----", "image", "/Library/Application Support/shadowx/default/header0.png"],
     
     ["snapchat interface", "nomapswiping", "No Map Swipe", "Disable swiping to Snapmap.", "switch", "false"],
     ["snapchat interface", "noads", "Disable Ads", "Block all advertisements.", "switch", "true"],
@@ -48,4 +48,5 @@
     ["shadow experiments", "scspambtn", "Screenshot Spam", "Rapidly sends screenshot notifications as a PRANK",  "switch", "false"],
     ["shadow experiments", "eastereggs", "Enable Easter Eggs", "Enable some small and potentially buggy secret changes.", "switch", "true"],
     ["shadow experiments", "hotdog", "Download Hotdog Images", "Disabling this wont change anything, downloading hotdog images regardless.",  "switch", "true"],
+    ["shadow experiments", "theme", "Change Shadow Theming", "Specify a path for new settings and assets",  "text", "default"],
 ]

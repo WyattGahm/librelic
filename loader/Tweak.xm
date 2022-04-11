@@ -14,10 +14,6 @@
 
 #define _Bool bool
 #define typeof __typeof__
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-#pragma clang diagnostic ignored "-Wformat-security"
-#pragma clang diagnostic ignored "-Wunused-function"
-
 
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <UIKit/UIKit.h>
@@ -48,92 +44,18 @@
 #import "SCNMessagingUUID.h"
 #import "SCStatusBarOverlayLabelWindow.h"
 #import "SIGPullToRefreshGhostView.h"
+#import "SCOperaViewController.h"
+#import "SCSwipeViewContainerViewController.h"
 
 #import "util.h"
 #import "ShadowData.h"
+#import "ShadowHelper.h"
+#import "ShadowAssets.h"
 #import "ShadowSettingsViewController.h"
 #import "ShadowImportUtil.h"
 #import "RainbowRoad.h"
 #import "LocationPicker.h"
-
 #import "XLLogerManager.h"
-
-
-
-@interface SCOperaViewController : UIViewController
--(void)_advanceToNextPage:(BOOL)arg1;
-@end
-
-//SIGActionSheetCell * saveCell;
-
-@interface ShadowHelper: NSObject
-@end
-
-@implementation ShadowHelper
-+(void)screenshot{
-    [[ShadowData sharedInstance] disable:@"screenshot"];
-     [[NSNotificationCenter defaultCenter] postNotification: [NSNotification notificationWithName:UIApplicationUserDidTakeScreenshotNotification object:nil]];
-    [[ShadowData sharedInstance] enable:@"screenshot"];
- }
-+(void)banner:(NSString*)text color:(NSString *)color alpha:(float)alpha{
-    if([[ShadowData sharedInstance] enabled: @"showbanners"]){
-        unsigned rgbValue = 0;
-        NSScanner *scanner = [NSScanner scannerWithString:color];
-        [scanner setScanLocation:1];
-        [scanner scanHexInt:&rgbValue];
-        UIColor * bannerColor = [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:alpha];
-        [%c(SCStatusBarOverlayLabelWindow) showMessageWithText:text backgroundColor:bannerColor];
-    }
-}
-+(void)banner:(NSString*)text color:(NSString *)color{
-    if([[ShadowData sharedInstance] enabled: @"showbanners"]){
-        [self banner:text color:color alpha:.75];
-    }
-}
-+(void)debug{
-    [[XLLogerManager manager] showOnWindow];
-}
-+(void)picklocation{
-    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
-    [[LocationPicker new] pickLocationWithCallback:^(NSDictionary *location){
-        NSLog(@"location: %@",location);
-        [ShadowData sharedInstance].location = [location mutableCopy];
-        [ShadowHelper banner:@"Setting saved pin as your location! 📍" color:@"#00FF00"];
-        SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset all settings to default and close the App. Is that okay?"];
-        SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
-            //[ShadowData resetSettings];
-            [alert dismissViewControllerAnimated:YES completion:nil];
-            //exit(0);
-        }];
-        SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
-            [alert dismissViewControllerAnimated:YES completion:nil];
-        }];
-        
-        [alert _setActions: @[back,call]];
-        [topVC presentViewController: alert animated: true completion:nil];
-        
-    } from:topVC];
-}
-+(void)reset{
-    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset all settings to default and close the App. Is that okay?"];
-    SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
-        [ShadowData resetSettings];
-        [alert dismissViewControllerAnimated:YES completion:nil];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
-            exit(0);
-        });
-    }];
-    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
-        [alert dismissViewControllerAnimated:YES completion:nil];
-    }];
-    
-    [alert _setActions: @[back,call]];
-    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
-    [topVC presentViewController: alert animated: true completion:nil];
-}
-@end
 
 
 static void (*orig_tap)(id self, SEL _cmd, id arg1);
@@ -179,7 +101,7 @@ static void save(SCOperaPageViewController* self, SEL _cmd) {
     if([[ShadowData sharedInstance] enabled: @"savebutton"]){
         UIButton *button = [self.view.subviews lastObject];
         if([button class] == %c(UIButton)){
-            UIImage *savedIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/saved.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+            UIImage *savedIcon = [[ShadowAssets sharedInstance].saved imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
             [button setImage: savedIcon forState:UIControlStateNormal];
             button.userInteractionEnabled = NO;
         }
@@ -242,7 +164,7 @@ static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4)
         
         //figure out internal way fo using selectors instead of gesture recog
         /* [newOption _addTarget:self action:@selector(saveSnap)]; */
-        [newOption setTrailingAccessoryView:[[UIImageView alloc] initWithImage:[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/save.png"]]];
+        [newOption setTrailingAccessoryView:[[UIImageView alloc] initWithImage:[ShadowAssets sharedInstance].save]];
         //saveCell = newOption;
         SCOperaPageViewController *opera = (SCOperaPageViewController *)[[self attachedToView] performSelector:@selector(_operaPageViewController)];
         for(int i = 0; i < newOption.gestureRecognizers.count;i++)
@@ -322,7 +244,7 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
             
             UIButton * seenButton = [UIButton buttonWithType:UIButtonTypeCustom];
             seenButton.frame = CGRectMake(btnsz,btnsz,btnsz,btnsz);
-            UIImage *seenIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/seen.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+            UIImage *seenIcon = [[ShadowAssets sharedInstance].seen imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
             [seenButton setImage: seenIcon forState:UIControlStateNormal];
             [seenButton addTarget:self action:@selector(markSeen) forControlEvents:UIControlEventTouchUpInside];
             if([[ShadowData sharedInstance] enabled: @"seenright"]){
@@ -340,7 +262,7 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
     if([[ShadowData sharedInstance] enabled: @"screenshotbtn"]){
         UIButton * scButton = [UIButton buttonWithType:UIButtonTypeCustom];
         scButton.frame = CGRectMake(0,0,btnsz,btnsz);
-        UIImage *scIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/screenshot.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+        UIImage *scIcon = [[ShadowAssets sharedInstance].screenshot imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
         [scButton setImage: scIcon forState:UIControlStateNormal];
         [scButton addTarget:%c(ShadowHelper) action:@selector(screenshot) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
@@ -355,7 +277,7 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
     if([[ShadowData sharedInstance] enabled: @"savebutton"]){
         UIButton * saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
         saveButton.frame = CGRectMake(0,0,btnsz,btnsz);
-        UIImage *saveIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/save.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+        UIImage *saveIcon = [[ShadowAssets sharedInstance].save imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
         [saveButton setImage: saveIcon forState:UIControlStateNormal];
         [saveButton addTarget:self action:@selector(saveSnap) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
@@ -385,10 +307,13 @@ static void loaded(id self, SEL _cmd){
     }
     orig_loaded(self, _cmd);
     if(![[ShadowData sharedInstance] enabled: @"upload"]) return;
-    if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]) return;
+    if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]){
+        NSLog(@"FAILED TO IDENTIFY CAMERA");
+        return;
+    }
     UIButton * uploadButton = [UIButton buttonWithType:UIButtonTypeCustom];
     uploadButton.frame = CGRectMake(0,0,btnsz,btnsz);
-    UIImage *uploadIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/upload.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+    UIImage *uploadIcon = [[ShadowAssets sharedInstance].upload imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
     [uploadButton setImage:uploadIcon forState:UIControlStateNormal];
     [uploadButton addTarget:self action:@selector(upload) forControlEvents:UIControlEventTouchUpInside];
     double x = [UIScreen mainScreen].bounds.size.width *0.88; //tweak me? dynamic maybe?
@@ -532,7 +457,7 @@ static void updateghost(id self, SEL _cmd, long arg1){
         UIImageView *wink = MSHookIvar<UIImageView *>(ghost, "_winkBody");
         UIImageView *shocked = MSHookIvar<UIImageView *>(ghost, "_shockedBody");
         
-        UIImage *rose = [UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/rose.png"];
+        UIImage *rose = [ShadowAssets sharedInstance].pullrefresh;
         
         normal.image = rose;
         wink.image = rose;
@@ -587,10 +512,6 @@ void openurl2(id self, SEL _cmd, id arg1, long arg2, id arg3, id arg4, id arg5){
         orig_openurl2(self, _cmd, arg1, arg2, arg3, arg4, arg5);
     }
 }
-
-@interface SCSwipeViewContainerViewController: NSObject
-@property NSUInteger allowedDirections;
-@end
 
 long (*orig_nomapswipe)(id self, SEL _cmd, id arg1);
 long nomapswipe(id self, SEL _cmd, id arg1){
@@ -704,7 +625,7 @@ void loaded3(id self, SEL _cmd){
         
         UIButton * scButton = [UIButton buttonWithType:UIButtonTypeCustom];
         scButton.frame = CGRectMake(0,0,btnsz,btnsz);
-        UIImage *scIcon = [[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/screenshot.png"] imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+        UIImage *scIcon = [[ShadowAssets sharedInstance].screenshot imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
         [scButton setImage: scIcon forState:UIControlStateNormal];
         [scButton addTarget:self action:@selector(screenshot) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.50; //tweak me? dynamic maybe?

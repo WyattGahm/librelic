@@ -3,7 +3,13 @@
 @implementation ShadowData
 -(id)init{
     self = [super init];
-    NSData *jsonData = [NSData dataWithContentsOfFile:@"/Library/Application Support/shadowx/defaults.json"];
+    NSData *jsonData;
+    if(self.settings[@"theme"]){
+        NSString *path = [[[@"/Library/Application Support/shadowx/" stringByAppendingString:self.settings[@"theme"]] stringByAppendingString:@"/"] stringByAppendingString:@"settings.json"];
+        jsonData = [NSData dataWithContentsOfFile:path];
+    }else{
+        jsonData = [NSData dataWithContentsOfFile:@"/Library/Application Support/shadowx/default/settings.json"];
+    }
     NSArray *jsonArray = [NSJSONSerialization JSONObjectWithData: jsonData options: NSJSONReadingMutableContainers error: nil];
     self.prefs = [ShadowSetting makeSettings:jsonArray];
     [self syncSettings];

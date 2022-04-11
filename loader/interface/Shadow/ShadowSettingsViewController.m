@@ -154,7 +154,7 @@
         /// IMPORTANT STUFF FOR IOS 12 / DARK MODE TODO
         
         if([[ShadowData sharedInstance] enabled:@"darkmode"]){
-            //textField.layer.cornerRadius=8.0f;
+            textField.layer.cornerRadius=8.0f;
             textField.layer.masksToBounds = YES;
             textField.layer.borderColor = [[UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00] CGColor];
             textField.layer.borderWidth = 1.0f;

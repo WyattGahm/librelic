@@ -132,7 +132,7 @@
     
     UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [closeBtn addTarget:self action:@selector(closeSelf) forControlEvents:UIControlEventTouchUpInside];
-    [closeBtn setImage:[self imageForResourcePath:@"XLLoger.bundle/close" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]] forState:UIControlStateNormal];
+    [closeBtn setImage:[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/logger/close.png"] forState:UIControlStateNormal];
     closeBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
     closeBtn.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
     [self.topView addSubview:closeBtn];
@@ -151,7 +151,7 @@
     {
         UIButton *clearBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         [clearBtn addTarget:self action:@selector(clearText) forControlEvents:UIControlEventTouchUpInside];
-        [clearBtn setImage:[self imageForResourcePath:@"XLLoger.bundle/clear" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]] forState:UIControlStateNormal];
+        [clearBtn setImage:[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/logger/clear.png"] forState:UIControlStateNormal];
         clearBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
         clearBtn.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
         [self.topView addSubview:clearBtn];
@@ -174,8 +174,8 @@
     
     UIButton *checkBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [checkBtn addTarget:self action:@selector(turnOff:) forControlEvents:UIControlEventTouchUpInside];
-    [checkBtn setImage:[self imageForResourcePath:@"XLLoger.bundle/radio_uncheck" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]] forState:UIControlStateNormal];
-    [checkBtn setImage:[self imageForResourcePath:@"XLLoger.bundle/radio_checked" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]] forState:UIControlStateSelected];
+    [checkBtn setImage:[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/logger/radio_uncheck.png"] forState:UIControlStateNormal];
+    [checkBtn setImage:[UIImage imageWithContentsOfFile:@"/Library/Application Support/shadowx/logger/radio_checked.png"] forState:UIControlStateSelected];
     checkBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
     checkBtn.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
     [self.bottomView addSubview:checkBtn];
