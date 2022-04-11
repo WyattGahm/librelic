@@ -153,10 +153,16 @@
         textField.returnKeyType = UIReturnKeyDone;
         textField.delegate = self;
         textField.tag = originalIndex;
+        
         /// IMPORTANT STUFF FOR IOS 12 / DARK MODE TODO
-        //textField.backgroundColor = [UIColor clearColor];
+        
         if([[ShadowData sharedInstance] enabled:@"darkmode"]){
-            textField.textColor = [UIColor blackColor];
+            //textField.layer.cornerRadius=8.0f;
+            textField.layer.masksToBounds = YES;
+            textField.layer.borderColor = [[UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00] CGColor];
+            textField.layer.borderWidth = 1.0f;
+            textField.textColor = [UIColor whiteColor];
+            textField.backgroundColor = [UIColor clearColor];
         }
         if([[ShadowData sharedInstance].server[setting.key] isEqualToString:@"Disable"]){
             textField.enabled = FALSE;
