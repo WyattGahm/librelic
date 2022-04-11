@@ -99,6 +99,7 @@
     [[LocationPicker new] pickLocationWithCallback:^(NSDictionary *location){
         NSLog(@"location: %@",location);
         [ShadowData sharedInstance].location = [location mutableCopy];
+        [ShadowHelper banner:@"Setting saved pin as your location! 📍" color:@"#00FF00"];
         SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset all settings to default and close the App. Is that okay?"];
         SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
             //[ShadowData resetSettings];
@@ -394,6 +395,7 @@ static void loaded(id self, SEL _cmd){
     double y = [UIScreen mainScreen].bounds.size.height *0.87;//tweak me? dynamic maybe?
     uploadButton.center = CGPointMake(x, y);
     [((UIViewController*)self).view addSubview: uploadButton];
+    [ShadowHelper banner:@"Shadow X - Powered by librelic 👻" color:@"#FF0F87"];
 }
 
 //new, so no orig
@@ -407,12 +409,14 @@ static void uploadhandler(id self, SEL _cmd){
             [cam _handleDeepLinkShareToPreviewWithImageFile:url];
             //[cam performSelector: @selector(captureStillImage)];
         });
+        [ShadowHelper banner:@"Uploaded Image! 📸" color:@"#00FF00"];
     } videoHandler:^(NSURL *url){
         [util dismissViewControllerAnimated:NO completion:nil];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
             [cam _handleDeepLinkShareToPreviewWithVideoFile:url];
             //[cam performSelector: @selector(captureStillImage)];
         });
+        [ShadowHelper banner:@"Uploaded Video! 🎥" color:@"#00FF00"];
     }];
     /*
     SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Upload" description:@""];
