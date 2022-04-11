@@ -32,5 +32,6 @@
 -(NSMutableDictionary<NSString*, NSMutableArray<ShadowSetting*>*>*)layout;
 -(NSMutableArray<NSString*>*)orderedSections;
 -(long)indexForKey:(NSString *)key;
++(NSMutableArray*)getThemes;
 @end
 

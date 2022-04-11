@@ -4,8 +4,8 @@
 - (id)init{
     self = [super init];
     NSString *theme = @"/Library/Application Support/shadowx/default/";
-    if([ShadowData sharedInstance].settings[@"theme"]){
-        theme = [[@"/Library/Application Support/shadowx/" stringByAppendingString:[ShadowData sharedInstance].settings[@"theme"]] stringByAppendingString:@"/"];
+    if([ShadowData sharedInstance].theme){
+        theme = [[@"/Library/Application Support/shadowx/" stringByAppendingString:[ShadowData sharedInstance].theme] stringByAppendingString:@"/"];
     }
     self.save = [UIImage imageWithContentsOfFile:[theme stringByAppendingString:@"save.png"]];
     self.upload = [UIImage imageWithContentsOfFile:[theme stringByAppendingString:@"upload.png"]];

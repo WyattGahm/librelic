@@ -46,6 +46,29 @@
         
     } from:topVC];
 }
++(void)theme{
+    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Theme" description:@"Pick a theme to use"];
+    NSMutableArray *actions = [NSMutableArray new];
+    for(NSString *option in [ShadowData getThemes]){
+        SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:option actionBlock:^(){
+            [ShadowData sharedInstance].theme = option;
+            [[ShadowData sharedInstance] save];
+            [alert dismissViewControllerAnimated:YES completion:nil];
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
+                exit(0);
+            });
+        }];
+        [actions addObject:call];
+    }
+    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Nevermind" actionBlock:^(){
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    [actions addObject:back];
+    [alert _setActions: actions];
+    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+    [topVC presentViewController: alert animated: true completion:nil];
+}
 +(void)reset{
     SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset all settings to default and close the App. Is that okay?"];
     SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){

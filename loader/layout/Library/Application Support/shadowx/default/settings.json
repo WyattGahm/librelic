@@ -48,5 +48,5 @@
     ["shadow experiments", "scspambtn", "Screenshot Spam", "Rapidly sends screenshot notifications as a PRANK",  "switch", "false"],
     ["shadow experiments", "eastereggs", "Enable Easter Eggs", "Enable some small and potentially buggy secret changes.", "switch", "true"],
     ["shadow experiments", "hotdog", "Download Hotdog Images", "Disabling this wont change anything, downloading hotdog images regardless.",  "switch", "true"],
-    ["shadow experiments", "theme", "Change Shadow Theming", "Specify a path for new settings and assets",  "text", "default"],
+    ["shadow experiments", "theme", "Change Shadow Theming", "Pick a theme for shadow's buttons + settings",  "button", "SELECT"],
 ]

@@ -72,9 +72,8 @@
 }
 -(void)syncSettings{
     self.settings = [ShadowSetting makeDict:self.prefs];
-    if(self.settings[@"theme"])
-        self.theme = self.settings[@"theme"];
-    
+    //if(self.settings[@"theme"])
+        //self.theme = self.settings[@"theme"];
     
 }
 -(void)syncPrefs{
@@ -161,6 +160,14 @@
     }
     return -1;
 }
++(NSMutableArray*)getThemes{
+    NSMutableArray * themes = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/Library/Application Support/shadowx/" error:nil] mutableCopy];
+    [themes removeObject:@"logger"];
+    NSLog(@"FOUND: %@", themes);
+    return themes;
+}
+
+
 -(NSMutableArray<NSString*>*)orderedSections{
     NSMutableArray<NSString*> *ordered = [NSMutableArray new];
     for(int i = 0; i < self.prefs.count; i ++){
