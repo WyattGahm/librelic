@@ -297,6 +297,22 @@ static void loaded(id self, SEL _cmd){
         btnsz = [[ShadowData sharedInstance].settings[@"buttonsize"] intValue];
     }
     
+    orig_loaded(self, _cmd);
+    if([[ShadowData sharedInstance] enabled: @"upload"]){
+        if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]){
+            NSLog(@"FAILED TO IDENTIFY CAMERA");
+            return;
+        }
+        UIButton * uploadButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        uploadButton.frame = CGRectMake(0,0,btnsz,btnsz);
+        UIImage *uploadIcon = [[ShadowAssets sharedInstance].upload imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+        [uploadButton setImage:uploadIcon forState:UIControlStateNormal];
+        [uploadButton addTarget:self action:@selector(upload) forControlEvents:UIControlEventTouchUpInside];
+        double x = [UIScreen mainScreen].bounds.size.width *0.88; //tweak me? dynamic maybe?
+        double y = [UIScreen mainScreen].bounds.size.height *0.87;//tweak me? dynamic maybe?
+        uploadButton.center = CGPointMake(x, y);
+        [((UIViewController*)self).view addSubview: uploadButton];
+    }
     if(![ShadowData isFirst]) {
         UIViewController *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Hello and Welcome!" description:@"Shadow X has been loaded and injected using librelic 2.0.\n\nUsage: Tap \"Shadow X\" to open the settings panel.\n\nHave fun, and remember to report any and all bugs! 👻\n\nDesigned privately by no5up and Kanji"];
         UILabel *title = MSHookIvar<UILabel*>(alert,"_titleLabel");
@@ -305,21 +321,6 @@ static void loaded(id self, SEL _cmd){
         [self presentViewController:alert animated:YES completion:nil];
         [[ShadowData sharedInstance] save];
     }
-    orig_loaded(self, _cmd);
-    if(![[ShadowData sharedInstance] enabled: @"upload"]) return;
-    if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]){
-        NSLog(@"FAILED TO IDENTIFY CAMERA");
-        return;
-    }
-    UIButton * uploadButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    uploadButton.frame = CGRectMake(0,0,btnsz,btnsz);
-    UIImage *uploadIcon = [[ShadowAssets sharedInstance].upload imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
-    [uploadButton setImage:uploadIcon forState:UIControlStateNormal];
-    [uploadButton addTarget:self action:@selector(upload) forControlEvents:UIControlEventTouchUpInside];
-    double x = [UIScreen mainScreen].bounds.size.width *0.88; //tweak me? dynamic maybe?
-    double y = [UIScreen mainScreen].bounds.size.height *0.87;//tweak me? dynamic maybe?
-    uploadButton.center = CGPointMake(x, y);
-    [((UIViewController*)self).view addSubview: uploadButton];
     [ShadowHelper banner:@"Shadow X - Powered by librelic 👻" color:@"#FF0F87"];
 }
 
