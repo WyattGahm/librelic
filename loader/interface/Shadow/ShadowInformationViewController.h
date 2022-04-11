@@ -8,7 +8,6 @@
 @property (nonatomic, strong) UINavigationBar *nav;
 @property (nonatomic, strong) UILabel * label;
 @end
-
 @implementation ShadowInformationViewController
 
 -(void)buildBody{

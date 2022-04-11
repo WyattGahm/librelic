@@ -1,34 +1,7 @@
-//
-//  ShadowSetting.h
-//  ShadowUI
-//
-//  Created by Wyatt Gahm on 11/10/21.
-//
-
-@interface ShadowSetting: NSObject
-@property NSString *section;
-@property NSString *key;
-@property NSString *title;
-@property NSString *text;
-@property NSString *type;
-@property NSString *value;
-
-//@property NSString *value;
-//-(instancetype)key:(NSString *)key name:(NSString *)name text:(NSString *)text value:(_Bool)value;
--(instancetype)fromDict:(NSDictionary *)dict;
--(instancetype)fromArray:(NSArray *)dict;
-@end
+#import "ShadowSetting.h"
 
 @implementation ShadowSetting
-/*
--(instancetype)key:(NSString *)key name:(NSString *)name text:(NSString *)text value:(_Bool)value{
-    self.key = key;
-    self.name = name;
-    self.text = text;
-    self.value = value;
-    return self;
-}
- */
+
 -(instancetype)fromDict:(NSDictionary *)dict{
     self.section = dict[@"section"];
     self.key = dict[@"key"];
@@ -62,4 +35,5 @@
     return @[self.section, self.key, self.title, self.text, self.type, self.value];
 }
 @end
+
 

@@ -1,11 +1,8 @@
-#include <UIKit/UIKit.h>
+#include "ShadowSettingsViewController.h"
+#include "ShadowData.h"
 #include "ShadowInformationViewController.h"
 #include "RainbowRoad.h"
 #include "ShadowAssets.h"
-
-@interface ShadowSettingsViewController: UIViewController <UITableViewDelegate,UITableViewDataSource,UITextFieldDelegate>
-@property (strong,nonatomic) UITableView *table;
-@end
 
 @implementation ShadowSettingsViewController
 
@@ -251,3 +248,4 @@
     [self presentViewController:[ShadowInformationViewController new] animated:true completion:nil];
 }
 @end
+

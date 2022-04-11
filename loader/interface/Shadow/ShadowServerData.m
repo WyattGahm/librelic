@@ -1,15 +1,4 @@
-//
-//  ShadowServerData.h
-//  ShadowUI
-//
-//  Created by Wyatt Gahm on 11/11/21.
-//
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
-
-@interface ShadowServerData : NSObject
-+(NSDictionary *)dictionaryForURL:(NSURL *)url;
-@end
+#import "ShadowServerData.h"
 
 @implementation ShadowServerData
 +(NSDictionary *)dictionaryForURL:(NSURL *)url{

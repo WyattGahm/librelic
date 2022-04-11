@@ -1,32 +1,4 @@
-//
-//  SHData.h
-//  ShadowUI
-//
-//  Created by Wyatt Gahm on 11/10/21.
-//
-#import "ShadowSetting.h"
-#import "ShadowServerData.h"
-
-
-#define LOCATION @"location"
-#define SETTINGS @"settings"
-#define FILE @"shadowxrelic.plist"
-
-@interface ShadowData:NSObject <NSCoding>
-@property NSArray<ShadowSetting *> *prefs;
-@property NSMutableDictionary *settings;
-@property NSMutableDictionary *location;
-@property NSDictionary *server;
-@property BOOL seen;
--(void)save;
--(id)load;
--(BOOL)enabled:(NSString *) key;
-+(BOOL)isFirst;
--(void)disable:(NSString *)key;
-+(void)resetSettings;
-+(NSString *)fileWithName:(NSString *)name;
--(CLLocation *)getLocation;
-@end
+#import "ShadowData.h"
 
 @implementation ShadowData
 -(id)init{
@@ -177,3 +149,4 @@
     return [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject].path stringByAppendingPathComponent:name];
 }
 @end
+
