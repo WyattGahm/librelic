@@ -1,30 +1,51 @@
 #import "ShadowData.h"
 
 @implementation ShadowData
--(id)init{
-    self = [super init];
-    NSData *jsonData;
-    if(self.settings[@"theme"]){
-        NSString *path = [[[@"/Library/Application Support/shadowx/" stringByAppendingString:self.settings[@"theme"]] stringByAppendingString:@"/"] stringByAppendingString:@"settings.json"];
-        jsonData = [NSData dataWithContentsOfFile:path];
-    }else{
-        jsonData = [NSData dataWithContentsOfFile:@"/Library/Application Support/shadowx/default/settings.json"];
+
+-(instancetype)initsafe{
+    NSData *raw = [NSData dataWithContentsOfFile:[ShadowData fileWithName:FILE]];
+    //[NSKeyedUnarchiver unarchivedObjectOfClass:[self class] fromData:raw error:nil];
+    ShadowData *data = [NSKeyedUnarchiver unarchiveObjectWithData:raw];
+    if(!data){
+        data = [ShadowData new];
     }
+    [data setup];
+    return data;
+}
+
+-(void)setup{
+    NSString *path;
+    
+    if(self.theme){
+        NSLog(@"THEME: %@", self.theme);
+        path = [[[@"/Library/Application Support/shadowx/" stringByAppendingString:self.theme] stringByAppendingString:@"/"] stringByAppendingString:@"settings.json"];
+        if(![[NSFileManager defaultManager] fileExistsAtPath:path]){
+            NSLog(@"handled the error");
+            path = @"/Library/Application Support/shadowx/default/settings.json";
+        }
+    }else{
+        path = @"/Library/Application Support/shadowx/default/settings.json";
+    }
+    
+    NSData *jsonData = [NSData dataWithContentsOfFile:path];
     NSArray *jsonArray = [NSJSONSerialization JSONObjectWithData: jsonData options: NSJSONReadingMutableContainers error: nil];
     self.prefs = [ShadowSetting makeSettings:jsonArray];
     [self syncSettings];
-    self.location = [NSMutableDictionary new];
     self.seen = FALSE;
-    return self;
+    self.server = [ShadowServerData dictionaryForURL:[NSURL URLWithString:@"https://no5up.dev/data_private.json"]];
+    
 }
+
 //NSCoding
 - (void)encodeWithCoder:(NSCoder *)encoder {
     [encoder encodeObject:self.settings forKey:SETTINGS];
     [encoder encodeObject:self.location forKey:LOCATION];
+    [encoder encodeObject:self.theme forKey:THEME];
 }
 //NSCoding
 - (id)initWithCoder:(NSCoder *)decoder {
     self = [self init];
+    self.theme = [decoder decodeObjectForKey:THEME];
     self.settings = [decoder decodeObjectForKey:SETTINGS];
     self.location = [decoder decodeObjectForKey:LOCATION];
     return self;
@@ -34,8 +55,7 @@
     static ShadowData *sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedInstance = [[ShadowData alloc] init];
-        sharedInstance.server = [ShadowServerData dictionaryForURL:[NSURL URLWithString:@"https://no5up.dev/data_private.json"]];
+        sharedInstance = [[ShadowData alloc] initsafe];
     });
     return sharedInstance;
 }
@@ -48,9 +68,14 @@
 -(void)update:(ShadowData*)data{
     self.settings = [NSMutableDictionary dictionaryWithDictionary:data.settings];
     self.location = [NSMutableDictionary dictionaryWithDictionary:data.location];
+    self.theme = data.theme;
 }
 -(void)syncSettings{
     self.settings = [ShadowSetting makeDict:self.prefs];
+    if(self.settings[@"theme"])
+        self.theme = self.settings[@"theme"];
+    
+    
 }
 -(void)syncPrefs{
     for(NSString *key in self.settings){
@@ -88,8 +113,8 @@
     [self update:[NSKeyedUnarchiver unarchiveObjectWithData:raw]];
     [self syncPrefs];
     return self;
-    
 }
+
 //legacy support
 -(BOOL)enabled:(NSString *) key{
     for(ShadowSetting *setting in self.prefs){

@@ -9,6 +9,7 @@
 
 #define LOCATION @"location"
 #define SETTINGS @"settings"
+#define THEME @"theme"
 #define FILE @"shadowxrelic.plist"
 
 @interface ShadowData:NSObject <NSCoding>
@@ -17,6 +18,7 @@
 @property NSMutableDictionary *location;
 @property NSDictionary *server;
 @property BOOL seen;
+@property NSString *theme;
 -(void)save;
 -(id)load;
 -(BOOL)enabled:(NSString *) key;

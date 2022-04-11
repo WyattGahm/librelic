@@ -321,7 +321,12 @@ static void loaded(id self, SEL _cmd){
         [self presentViewController:alert animated:YES completion:nil];
         [[ShadowData sharedInstance] save];
     }
-    [ShadowHelper banner:@"Shadow X - Powered by librelic 👻" color:@"#FF0F87"];
+    
+    if(![ShadowAssets sharedInstance].upload && ![ShadowAssets sharedInstance].save){
+        [ShadowHelper banner:@"ERROR LOADING THEME" color:@"#FF0000"];
+    }else{
+        [ShadowHelper banner:@"Shadow X - Powered by librelic 👻" color:@"#FF0F87"];
+    }
 }
 
 //new, so no orig
@@ -777,7 +782,7 @@ id chat_test(id self, SEL _cmd){
         RelicHookMessageEx(%c(SCChatConversationUpdater), @selector(activeConversationData), (void *)chat_test, &orig_chat_test);
     });
     NSLog(@"[Shadow X + Relic] Hooks Initialized and Tweak Loaded");
-    [[ShadowData sharedInstance] load];
+    [ShadowData sharedInstance];
 }
 
 %dtor {
