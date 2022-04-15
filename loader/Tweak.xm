@@ -716,24 +716,23 @@ BOOL cellswipe(id self, SEL _cmd){
 }
 
 
-id (*orig_chat_test)(id self, SEL _cmd);
-id chat_test(id self, SEL _cmd){
-    id ret = orig_chat_test(self, _cmd);
-    NSLog(@"CHAT: %@", ret);
-    return ret;
+void (*orig_deleted)(id self, SEL _cmd, id arg1, id arg2, id arg3, id arg4);
+void deleted(id self, SEL _cmd, id arg1, id arg2, NSArray<SCNMessagingMessage*>* arg3, id arg4){
+    if([[ShadowData sharedInstance] enabled: @"keepchat"]){
+        NSMutableArray<SCNMessagingMessage*>* models = [NSMutableArray new];
+        for(SCNMessagingMessage *model in arg3){
+            if(!model.isErased){
+                [models addObject:model];
+            }
+        }
+        orig_deleted(self, _cmd, arg1, arg2, models, arg4);
+    }else{
+        orig_deleted(self, _cmd, arg1, arg2, arg3, arg4);
+    }
 }
 
-
 %ctor{
-    /*
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note){
-        NSLog(@"APP LOADED");
-        //[[XLLogerManager manager] showOnWindow];
-    }];
-     */
     [[XLLogerManager manager] prepare];
-    
-    //if( [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.toyopagroup.picaboo"]);
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         RelicHookMessageEx(%c(SIGHeaderTitle), @selector(_titleTapped:), (void *)tap, &orig_tap);
@@ -755,6 +754,9 @@ id chat_test(id self, SEL _cmd){
         RelicHookMessage(%c(SCChatMainViewController), @selector(screenshot), (void *)screenshotspam);
         RelicHookMessageEx(%c(SIGPullToRefreshView), @selector(setHeight:), (void *)updateghost, &orig_updateghost);
         RelicHookMessage(%c(SCSwipeViewContainerViewController), @selector(upload), (void *)uploadhandler);
+        
+        RelicHookMessageEx(%c(SCArroyoConversationDataUpdateAnnouncer), @selector(onConversationUpdated:conversation:updatedMessages:removedMessages:), (void *)deleted, &orig_deleted);
+
         RelicHookMessageEx(%c(SCLocationManager), @selector(location), (void *)location, &orig_location);
         RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);
         RelicHookMessageEx(%c(SCPinnedConversationsDataCoordinator), @selector(hasPinnedConversationWithId:), (void *)pinned, &orig_pinned);
@@ -778,8 +780,6 @@ id chat_test(id self, SEL _cmd){
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowStoryAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowUserStoriesAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowAds), (void *)noads);
-        
-        RelicHookMessageEx(%c(SCChatConversationUpdater), @selector(activeConversationData), (void *)chat_test, &orig_chat_test);
     });
     NSLog(@"[Shadow X + Relic] Hooks Initialized and Tweak Loaded");
     [ShadowData sharedInstance];
@@ -790,56 +790,3 @@ id chat_test(id self, SEL _cmd){
 }
 
 
-//-[SCMapBitmojiLayerController setSelectedUserId:0x28090d600 animated:0x1]
-// -[SCMapBitmojiLayerController bitmojiLayerDidCancelTouches:0x282c23b00 didPanOrZoomMap:0x0]
-
-//<SCChatMessageCellViewModel: 0x28045b020>
-
-
-//SCChatV3MessageStateHandler
-//SCMessageChatViewModel$senderColor working yay
-//SCSavableItemChatTableViewCell$layoutSubviews?
-
-
-/*
- SCChatMessageCellViewModel
- SCChatConversationUpdater
- SCChatSavableViewModel??
- SCChatUIParameterProvider???
- SCChatConversationUpdater
- SCAArroyoMixedModeConversationData?
- [SCNMessagingMessageContent
- SCNativeConversationContainer
- 
- SCChatViewControllerV3
- SCChatConversationViewModelV3!
- SCChatConversationUpdater!
- SCChatConversationUpdaterListenerAnnouncer!
- SCChatTableViewV3Presenter _markMessageAsSeenFrom:to:
- SCChatMessageViewModelConfig
- SCChatUIBatchMessageParsingData
- SCChatUIMessageParser
- SCChatActiveConversationData!
- 
- SCChatConversationUpdater setNumberOfMessagesFromLastUpdate
- SCNativeConversationContainer messageRetentionInMinutes
- 
- SCNativeConversationContainer is24HourRetentionEnabled
- SCNMessagingConversationRetentionPolicy readRetentionTimeSeconds
- 
- SCChatTableViewV3Presenter _completeReloadForConversationViewModel:previousDistanceToBottom:isMessageAddedAtTheEnd:wasItemRemoved:isNewConversation:wasScrollAtBottomBeforeUpdate:isLastMessageSentBySelf:
- SCLegacyChatTooltipsServiceImpl shouldDisplayChatDeleteMsgInChat:
- 
- SCChatConversationUpdater addViewModel:toArray:updateCount:
- vSCChatUIBatchMessageParsingData
- SCNMessagingConversationRetentionPolicy initWithSendReadMessage:sendReleaseMessages:unreadRetentionTimeSeconds:readRetentionTimeSeconds:
- */
-
-
-//SCModularCallViewController
-//SCTCallViewWrapper
-//SCTCallViewContext
-//SCTalkV3Manager
-//[SCModularCallEntryPoint
-
-//SCTalkChatSession _composerCallButtonsOnStartCallMedia:!!!!!

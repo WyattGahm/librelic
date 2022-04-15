@@ -49,4 +49,5 @@
     ["shadow experiments", "eastereggs", "Enable Easter Eggs", "Enable some small and potentially buggy secret changes.", "switch", "true"],
     ["shadow experiments", "hotdog", "Download Hotdog Images", "Disabling this wont change anything, downloading hotdog images regardless.",  "switch", "true"],
     ["shadow experiments", "theme", "Change Shadow Theming", "Pick a theme for shadow's buttons + settings",  "button", "SELECT"],
+    ["shadow experiments", "keepchat", "Ignore deleted chats", "Ignore some deleted chats (only works when in chat)",  "switch", "true"],
 ]

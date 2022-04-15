@@ -2,10 +2,6 @@
 #include <stddef.h>
 #include <objc/runtime.h>
 
-//#define MSHookMessageEx(class, selector, callback, original) RelicHookMessageEx(class, selector, callback, original);
-//#define RCHookMessageEx(class, selector, callback, original) RelicHookMessageEx(class, selector, callback, original);
-//#define RCHookMessage(class, selector, callback) RelicHookMessage(class, selector, callback);
-
 typedef void (*relic_hook)(Class cls, SEL sel, void * replacement);
 typedef void (*relic_hookex)(Class cls, SEL sel, void * replacement, void * original);
 typedef void (*relic_unhook)(Class cls, SEL sel);
