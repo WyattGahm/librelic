@@ -4,6 +4,21 @@
 #include "RainbowRoad.h"
 #include "ShadowAssets.h"
 
+
+@interface ShadowSwitch: UISwitch
+@property NSString *setting;
+@end
+
+@implementation ShadowSwitch
+@end
+
+@interface ShadowField: UITextField
+@property NSString *setting;
+@end
+
+@implementation ShadowField
+@end
+
 @implementation ShadowSettingsViewController
 
 -(void)viewDidLoad {
@@ -84,7 +99,6 @@
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     ShadowSetting *setting = [[ShadowData sharedInstance] layout ] [ [ [ShadowData sharedInstance] orderedSections] [indexPath.section]][indexPath.row];
-    
     long originalIndex = [[ShadowData sharedInstance] indexForKey: setting.key];
     
     UITableViewCell *cell = [self.table dequeueReusableCellWithIdentifier:setting.type];
@@ -117,8 +131,12 @@
     }
     
     if([setting.type isEqualToString:@"switch"]){
-        UISwitch *switchview = [[UISwitch alloc] initWithFrame:CGRectMake(0,0,0,0)];
-        switchview.on = [setting.value isEqualToString: @"true"];
+        
+        ShadowSwitch *switchview = [[ShadowSwitch alloc] initWithFrame:CGRectMake(0,0,0,0)];
+        switchview.on = [[ShadowData sharedInstance].settings[setting.key] isEqualToString: @"true"];
+        
+        switchview.setting = setting.key;
+        
         if([[ShadowData sharedInstance] enabled:@"darkmode"])
             switchview.onTintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
         [switchview addTarget:self action:@selector(switchChanged:) forControlEvents:UIControlEventValueChanged];
@@ -129,19 +147,23 @@
             [[ShadowData sharedInstance] disable:setting.key];
         }
         cell.accessoryView = switchview;
+        
+        
     }else if([setting.type isEqualToString:@"button"]){
         UIButton * resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         [resetButton addTarget:objc_getClass("ShadowHelper") action:NSSelectorFromString(setting.key) forControlEvents:UIControlEventTouchUpInside];
-        [resetButton setTitle:setting.value forState:UIControlStateNormal];
+        [resetButton setTitle:[ShadowData sharedInstance].settings[setting.key] forState:UIControlStateNormal];
         if([[ShadowData sharedInstance] enabled:@"darkmode"])
             resetButton.tintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
         cell.accessoryView = resetButton;
         [resetButton sizeToFit];
     }else if([setting.type isEqualToString:@"text"]){
-        UITextField *textField = [UITextField new];
+        
+        
+        ShadowField *textField = [ShadowField new];
         textField.borderStyle = UITextBorderStyleRoundedRect;
         textField.font = [UIFont fontWithName:@"AvenirNext-Medium" size:13.5];
-        textField.text = setting.value;
+        textField.text = [ShadowData sharedInstance].settings[setting.key];
         textField.autocorrectionType = UITextAutocorrectionTypeNo;
         textField.keyboardType = UIKeyboardTypeDefault;
         textField.returnKeyType = UIReturnKeyDone;
@@ -179,9 +201,8 @@
     return cell;
 }
 
--(BOOL)textFieldShouldEndEditing:(UITextField *)textField{
-    ShadowSetting *setting = [ShadowData sharedInstance].prefs[textField.tag];
-    setting.value = textField.text;
+-(BOOL)textFieldShouldEndEditing:(ShadowField *)textField{
+    [ShadowData sharedInstance].settings[textField.setting] = textField.text;
     [[ShadowData sharedInstance] save];
     return YES;
 }
@@ -234,10 +255,8 @@
     }
 }
 
--(void)switchChanged:(id)sender {
-    UISwitch *switchControl = sender;
-    ShadowSetting *setting = [ShadowData sharedInstance].prefs[switchControl.tag];
-    setting.value = switchControl.on ? @"true" : @"false";
+-(void)switchChanged:(ShadowSwitch*)sender {
+    [ShadowData sharedInstance].settings[sender.setting] = sender.on ? @"true" : @"false";
     [[ShadowData sharedInstance] save];
 }
 -(void)backPressed:(UIBarButtonItem*)item{

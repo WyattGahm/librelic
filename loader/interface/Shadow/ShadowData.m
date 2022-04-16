@@ -15,7 +15,9 @@
 
 -(void)setup{
     NSString *path;
-    
+    if(!self.settings){
+        self.settings = [NSMutableDictionary new];
+    }
     if(self.theme){
         NSLog(@"THEME: %@", self.theme);
         path = [[[@"/Library/Application Support/shadowx/" stringByAppendingString:self.theme] stringByAppendingString:@"/"] stringByAppendingString:@"settings.json"];
@@ -42,7 +44,6 @@
     [encoder encodeObject:self.location forKey:LOCATION];
     [encoder encodeObject:self.theme forKey:THEME];
 }
-//NSCoding
 - (id)initWithCoder:(NSCoder *)decoder {
     self = [self init];
     self.theme = [decoder decodeObjectForKey:THEME];
@@ -71,20 +72,17 @@
     self.theme = data.theme;
 }
 -(void)syncSettings{
-    self.settings = [ShadowSetting makeDict:self.prefs];
+    for(ShadowSetting* setting in self.prefs){
+        if(!self.settings[setting.key]){
+            self.settings[setting.key] = setting.value;
+        }
+    }
+    //self.settings = [ShadowSetting makeDict:self.prefs];
     //if(self.settings[@"theme"])
         //self.theme = self.settings[@"theme"];
     
 }
--(void)syncPrefs{
-    for(NSString *key in self.settings){
-        for(ShadowSetting *setting in self.prefs){
-            if([key isEqualToString:setting.key]){
-                setting.value = self.settings[key];
-            }
-        }
-    }
-}
+
 //save
 -(void)save{
     [self syncSettings];
@@ -94,6 +92,9 @@
 }
 
 -(NSMutableDictionary<NSString*, NSMutableArray<ShadowSetting*>*>*)layout{
+    /*
+     returns a dictionary of the names of the settings as keys and an array of ShadowSettings
+     */
     NSMutableDictionary<NSString*, NSMutableArray<ShadowSetting*>*> *sections = [NSMutableDictionary new];
     for(ShadowSetting *setting in self.prefs){
         if(!sections[setting.section] ){
@@ -110,21 +111,20 @@
     NSData *raw = [NSData dataWithContentsOfFile:path];
     [NSKeyedUnarchiver unarchivedObjectOfClass:[self class] fromData:raw error:nil];
     [self update:[NSKeyedUnarchiver unarchiveObjectWithData:raw]];
-    [self syncPrefs];
     return self;
 }
 
-//legacy support
 -(BOOL)enabled:(NSString *) key{
-    for(ShadowSetting *setting in self.prefs){
-        if([setting.key isEqualToString:key]){
-            if([setting.type isEqualToString:@"switch"]){
-                return [setting.value isEqualToString:@"true"];
-            }else if([setting.type isEqualToString:@"text"]){
-                return ![setting.value isEqualToString:@""];
-            }else if([setting.type isEqualToString:@"button"]){
-                return YES;
-            }
+    if(self.settings[key]){
+        if([self.settings[key] isEqual:@"true"]){
+            return YES;
+        }else{
+            return NO;
+        }
+        if(![self.settings[key] isEqual:@""]){
+            return YES;
+        }else{
+            return NO;
         }
     }
     return NO;
@@ -134,9 +134,9 @@
     for(ShadowSetting *setting in self.prefs){
         if([setting.key isEqualToString:key]){
             if([setting.type isEqualToString:@"switch"]){
-                setting.value = @"false";
+                self.settings[setting.key] = @"false";
             }else if([setting.type isEqualToString:@"text"]){
-                setting.value = @"";
+                self.settings[setting.key] = @"";
             }
         }
     }
@@ -146,7 +146,7 @@
     for(ShadowSetting *setting in self.prefs){
         if([setting.key isEqualToString:key]){
             if([setting.type isEqualToString:@"switch"]){
-                setting.value = @"true";
+                self.settings[setting.key] = @"true";
             }
         }
     }
@@ -163,7 +163,6 @@
 +(NSMutableArray*)getThemes{
     NSMutableArray * themes = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/Library/Application Support/shadowx/" error:nil] mutableCopy];
     [themes removeObject:@"logger"];
-    NSLog(@"FOUND: %@", themes);
     return themes;
 }
 

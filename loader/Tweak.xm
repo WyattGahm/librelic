@@ -213,8 +213,11 @@ static void markheader(id self, SEL _cmd, NSUInteger arg1){
         }
         
         if([[ShadowData sharedInstance] enabled: @"rgb"]){
-            RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)label];
-            [effect resume];
+            if(label.tag == 0){
+                RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)label];
+                label.tag = 1;
+                [effect resume];
+            }
         }
     } @catch(id anException){
         [ShadowHelper banner:@"Header Modification Error!" color:@"#FF0000"];
@@ -249,11 +252,11 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
             [seenButton addTarget:self action:@selector(markSeen) forControlEvents:UIControlEventTouchUpInside];
             if([[ShadowData sharedInstance] enabled: @"seenright"]){
                 double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
-                double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
+                double y = [UIScreen mainScreen].bounds.size.height * 0.70;//tweak me? dynamic maybe?
                 seenButton.center = CGPointMake(x, y - (btnsz + 10));
             }else{
                 double x = [UIScreen mainScreen].bounds.size.width * 0.15;
-                double y = [UIScreen mainScreen].bounds.size.height * 0.80;
+                double y = [UIScreen mainScreen].bounds.size.height * 0.70;
                 seenButton.center = CGPointMake(x, y);
             }
             [((UIViewController*)self).view addSubview: seenButton];
@@ -266,7 +269,7 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
         [scButton setImage: scIcon forState:UIControlStateNormal];
         [scButton addTarget:%c(ShadowHelper) action:@selector(screenshot) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
-        double y = [UIScreen mainScreen].bounds.size.height * 0.80;
+        double y = [UIScreen mainScreen].bounds.size.height * 0.70;
         if([[ShadowData sharedInstance] enabled: @"seenbutton"]){
             scButton.center = CGPointMake(x, y - (2* (btnsz + 10)));
         }else{
@@ -281,7 +284,7 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
         [saveButton setImage: saveIcon forState:UIControlStateNormal];
         [saveButton addTarget:self action:@selector(saveSnap) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.85; //tweak me? dynamic maybe?
-        double y = [UIScreen mainScreen].bounds.size.height * 0.80;//tweak me? dynamic maybe?
+        double y = [UIScreen mainScreen].bounds.size.height * 0.70;//tweak me? dynamic maybe?
         saveButton.center = CGPointMake(x, y);
         [((UIViewController*)self).view addSubview: saveButton];
     }
@@ -635,7 +638,7 @@ void loaded3(id self, SEL _cmd){
         [scButton setImage: scIcon forState:UIControlStateNormal];
         [scButton addTarget:self action:@selector(screenshot) forControlEvents:UIControlEventTouchUpInside];
         double x = [UIScreen mainScreen].bounds.size.width * 0.50; //tweak me? dynamic maybe?
-        double y = [UIScreen mainScreen].bounds.size.height * 0.10;
+        double y = [UIScreen mainScreen].bounds.size.height * 0.8;
         scButton.center = CGPointMake(x, y );
         [((UIViewController*)self).view addSubview: scButton];
     }
