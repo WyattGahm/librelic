@@ -336,40 +336,21 @@ static void loaded(id self, SEL _cmd){
 static void uploadhandler(id self, SEL _cmd){
     SCMainCameraViewController *cam = [((UIViewController*)self).childViewControllers firstObject];
     ShadowImportUtil* util = [ShadowImportUtil new];
-    [cam presentViewController: util animated: NO completion:nil];
     [util pickMediaWithImageHandler:^(NSURL *url){
-        [util dismissViewControllerAnimated:NO completion:nil];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [util dismissViewControllerAnimated:NO completion:nil];
             [cam _handleDeepLinkShareToPreviewWithImageFile:url];
-            //[cam performSelector: @selector(captureStillImage)];
+            [ShadowHelper banner:@"Uploaded Image! 📸" color:@"#00FF00"];
         });
-        [ShadowHelper banner:@"Uploaded Image! 📸" color:@"#00FF00"];
+        
     } videoHandler:^(NSURL *url){
-        [util dismissViewControllerAnimated:NO completion:nil];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [util dismissViewControllerAnimated:NO completion:nil];
             [cam _handleDeepLinkShareToPreviewWithVideoFile:url];
-            //[cam performSelector: @selector(captureStillImage)];
+            [ShadowHelper banner:@"Uploaded Video! 🎥" color:@"#00FF00"];
         });
-        [ShadowHelper banner:@"Uploaded Video! 🎥" color:@"#00FF00"];
+        
     }];
-    /*
-    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Upload" description:@""];
-    SIGAlertDialogAction *upload = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Select" actionBlock:^(){
-        [importUtil pickMedia];
-        [alert dismissViewControllerAnimated:YES completion:nil];
-    }];
-    SIGAlertDialogAction *option2 = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Option 2" actionBlock:^(){
-        [alert dismissViewControllerAnimated:YES completion:nil];
-    }];
-    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
-        [alert dismissViewControllerAnimated:YES completion:nil];
-    }];
-    [alert _setActions: @[upload,option2,back]];
-    
-    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
-    [topVC presentViewController: alert animated: true completion:nil];
-     */
 }
 static void (*orig_hidebtn)(id self, SEL _cmd);
 static void hidebtn(id self, SEL _cmd){

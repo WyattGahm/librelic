@@ -34,41 +34,14 @@ typedef void(^URLHandler)(NSURL * url);
     
     [_vc presentViewController:_picker animated:YES completion:nil];
 }
+
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
-//-(void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey,id> *)info
-    NSLog(@"DONE! VC: %@",_vc);
-    [_vc dismissViewControllerAnimated:YES completion:nil];
+    [_vc dismissViewControllerAnimated:NO completion:nil];
     if([info[UIImagePickerControllerMediaType] isEqualToString: @"public.movie"]){
         self.videoHandler(info[UIImagePickerControllerMediaURL]);
     }else{
         self.imageHandler(info[UIImagePickerControllerImageURL]);
     }
-   
 }
--(void)imagePickerControllerDidCancel:(UIImagePickerController *)picker{
-    [_vc dismissViewControllerAnimated:YES completion:nil];
-    self.videoHandler(nil);
-}
-- (void)navigationController:(UINavigationController *)navigationController
-      willShowViewController:(UIViewController *)viewController
-                    animated:(BOOL)animated{
-    NSLog(@"Custom event 0: %@",viewController);
-}
-/*
-- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info{
-    NSLog(@"Running %@ '%@'", self.class, NSStringFromSelector(_cmd));
-    
-    //_image = info[UIImagePickerControllerEditedImage];
-    
-    [self dismissViewControllerAnimated:YES completion:nil];
-}
-
-
-
-- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker{
-    NSLog(@"Running %@ '%@'", self.class, NSStringFromSelector(_cmd));
-    [self dismissViewControllerAnimated:YES completion:nil];
-}
- */
 @end
 
