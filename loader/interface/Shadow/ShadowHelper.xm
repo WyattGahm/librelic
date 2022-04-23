@@ -107,5 +107,37 @@
 -(void)video:(NSString *)videoPath didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo{
     [[NSFileManager defaultManager] removeItemAtPath:videoPath error:nil];
 }
++(void)managesettings{
+    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Settings Manager" description:@"Export and Import settings via pasteboard.\nThis is dangerous be careful!"];
+    SIGAlertDialogAction *expo = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Export" actionBlock:^(){
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:[ShadowData sharedInstance].settings options:0 error:&error];
+        if(!jsonData){
+            NSLog(@"Got an error: %@", error);
+        }else{
+            NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+            pasteboard.string = jsonString;
+        }
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    SIGAlertDialogAction *impo = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Import" actionBlock:^(){
+        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+        NSData *jsonData = [pasteboard.string dataUsingEncoding:NSUTF8StringEncoding];
+        NSError *error;
+        NSDictionary * parsedData = [NSJSONSerialization JSONObjectWithData:jsonData options:kNilOptions error:&error];
+        [ShadowData sharedInstance].settings = [parsedData mutableCopy];
+        [[ShadowData sharedInstance] save];
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    
+    [alert _setActions: @[expo,impo,back]];
+    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+    [topVC presentViewController: alert animated: true completion:nil];
+}
 @end
 

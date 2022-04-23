@@ -52,5 +52,7 @@
     
     ["actions", "reset", "Reset All Settings", "Requires closing and opening Snapchat.", "button","RESET"],
     ["actions", "debug", "Open Log", "Opens a log window for debugging.", "button", "DEBUG"],
+    ["actions", "managesettings", "Manage Settings", "Import and export settings configurations", "button", "MANAGE"],
+    
     ["", "", "", "",  "", ""],
 ]

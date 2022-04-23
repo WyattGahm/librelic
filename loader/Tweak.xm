@@ -100,17 +100,15 @@ static void snapghost(id self, SEL _cmd, long long arg1, id arg2, long long arg3
 
 //no orig, were adding this
 static void save(SCOperaPageViewController* self, SEL _cmd) {
-    
   NSArray *mediaArray = [self shareableMedias];
-    NSLog(@"SAVING WITH MEDIA: %@", mediaArray);
   if (mediaArray.count == 1) {
     SCOperaShareableMedia *mediaObject = (SCOperaShareableMedia *)[mediaArray firstObject];
     if (mediaObject.mediaType == 0) {
       UIImage *snapImage = [mediaObject image];
       UIImageWriteToSavedPhotosAlbum(snapImage, nil, nil, nil);
-        [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
+        [ShadowHelper banner:@"Snap saved to camera roll!" color:@"#00FF00"];
     } else {
-        [ShadowHelper banner:@"Uh oh! Failed to save snap😢" color:@"#FF0000"];
+        [ShadowHelper banner:@"Failed to save snap" color:@"#FF0000"];
     }
   } else {
     for (SCOperaShareableMedia *mediaObject in mediaArray) {
@@ -125,11 +123,11 @@ static void save(SCOperaPageViewController* self, SEL _cmd) {
         exportSession.outputFileType = AVFileTypeQuickTimeMovie;
         [exportSession exportAsynchronouslyWithCompletionHandler:^{
           UISaveVideoAtPathToSavedPhotosAlbum(tempVideoFileURL.path, [%c(ShadowHelper) new], @selector(video:didFinishSavingWithError:contextInfo:), nil);
-            [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
+            [ShadowHelper banner:@"Snap saved to camera roll!" color:@"#00FF00"];
         }];
       } else if (mediaObject.mediaType == 1 && mediaObject.videoURL && mediaObject.videoAsset == nil) {
         UISaveVideoAtPathToSavedPhotosAlbum(mediaObject.videoURL.path, [%c(ShadowHelper) new], @selector(video:didFinishSavingWithError:contextInfo:), nil);
-          [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
+          [ShadowHelper banner:@"Snap saved to camera roll!" color:@"#00FF00"];
       }
     }
   }
