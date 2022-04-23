@@ -100,8 +100,9 @@ static void snapghost(id self, SEL _cmd, long long arg1, id arg2, long long arg3
 
 //no orig, were adding this
 static void save(SCOperaPageViewController* self, SEL _cmd) {
-    NSLog(@"SAVING A SNAP");
+    
   NSArray *mediaArray = [self shareableMedias];
+    NSLog(@"SAVING WITH MEDIA: %@", mediaArray);
   if (mediaArray.count == 1) {
     SCOperaShareableMedia *mediaObject = (SCOperaShareableMedia *)[mediaArray firstObject];
     if (mediaObject.mediaType == 0) {
@@ -258,7 +259,9 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
     
     [[ShadowOptionsManager sharedInstance] clear];
     [[ShadowOptionsManager sharedInstance] addOptionWithTitle: @"Save Media" identifier:@"shadow_save_media" block:^{
+        dispatch_async(dispatch_get_main_queue(), ^{
         [self performSelector:@selector(saveSnap)];
+        });
     
     }];
     
@@ -267,6 +270,7 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
         
     }];
 }
+
 
 
 static void (*orig_loaded)(id self, SEL _cmd);
