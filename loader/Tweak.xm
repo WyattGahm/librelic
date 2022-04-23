@@ -124,11 +124,11 @@ static void save(SCOperaPageViewController* self, SEL _cmd) {
         exportSession.outputURL = tempVideoFileURL;
         exportSession.outputFileType = AVFileTypeQuickTimeMovie;
         [exportSession exportAsynchronouslyWithCompletionHandler:^{
-          UISaveVideoAtPathToSavedPhotosAlbum(tempVideoFileURL.path, nil, nil, nil);
+          UISaveVideoAtPathToSavedPhotosAlbum(tempVideoFileURL.path, [%c(ShadowHelper) new], @selector(video:didFinishSavingWithError:contextInfo:), nil);
             [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
         }];
       } else if (mediaObject.mediaType == 1 && mediaObject.videoURL && mediaObject.videoAsset == nil) {
-        UISaveVideoAtPathToSavedPhotosAlbum(mediaObject.videoURL.path, nil, nil, nil);
+        UISaveVideoAtPathToSavedPhotosAlbum(mediaObject.videoURL.path, [%c(ShadowHelper) new], @selector(video:didFinishSavingWithError:contextInfo:), nil);
           [ShadowHelper banner:@"Snap saved to camera roll! 👻" color:@"#00FF00"];
       }
     }
@@ -185,41 +185,37 @@ static void markheader(id self, SEL _cmd, NSUInteger arg1){
 static void (*orig_loaded2)(id self, SEL _cmd);
 static void loaded2(SCOperaPageViewController* self, SEL _cmd){
     orig_loaded2(self, _cmd);
+    [ShadowData sharedInstance].seen = FALSE;
     
     if([ShadowData enabled:@"looping"]){
         [self updatePropertiesWithLooping: YES];
     }
     
-    long btnsz = 40;
-    if([ShadowData enabled: @"buttonsize"]){
-        btnsz = [[ShadowData sharedInstance].settings[@"buttonsize"] intValue];
+    long btnsz = [ShadowData enabled: @"buttonsize"] ? [[ShadowData sharedInstance].settings[@"buttonsize"] intValue] : 40;
+    NSDictionary* properties = (NSDictionary*)[[self performSelector:@selector(page)] performSelector:@selector(properties)];
+    if([ShadowData enabled: @"markfriends"] && properties[@"discover_story_composite_id"] != nil){
+        [ShadowData sharedInstance].seen = TRUE;
     }
     
-    [ShadowData sharedInstance].seen = FALSE;
-    NSDictionary* properties = (NSDictionary*)[[self performSelector:@selector(page)] performSelector:@selector(properties)];
-    if([ShadowData enabled: @"seenbutton"]){
-        
-        if([ShadowData enabled: @"markfriends"] && properties[@"discover_story_composite_id"] != nil){
-            [ShadowData sharedInstance].seen = TRUE;
-        }else{
+    if(![ShadowData enabled: @"nativeui"]){
+        if([ShadowData enabled: @"seenbutton"]){
             UIImage *seen1 = [ShadowAssets sharedInstance].seen;
             UIImage *seen2 = [ShadowAssets sharedInstance].seened;
             ShadowButton *seen = [[ShadowButton alloc] initWithPrimaryImage:seen1 secondaryImage:seen2 identifier:@"seen" target:self.delegate action:@selector(markSeen)];
             [self.view addSubview: seen];
         }
+        if([ShadowData enabled: @"screenshotbtn"]){
+            UIImage *scIcon = [[ShadowAssets sharedInstance].screenshot imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
+            ShadowButton *screenshot = [[ShadowButton alloc] initWithPrimaryImage:scIcon secondaryImage:nil identifier:@"sc" target:%c(ShadowHelper) action:@selector(screenshot)];
+            [screenshot addToVC: self];
+        }
+        if([ShadowData enabled: @"savebutton"]){
+            UIImage *save1 = [ShadowAssets sharedInstance].save;
+            UIImage *save2 = [ShadowAssets sharedInstance].saved;
+            ShadowButton *save = [[ShadowButton alloc] initWithPrimaryImage:save1 secondaryImage:save2 identifier:@"save" target:self action:@selector(saveSnap)];
+            [save addToVC: self];
+        }
     }
-    if([ShadowData enabled: @"screenshotbtn"]){
-        UIImage *scIcon = [[ShadowAssets sharedInstance].screenshot imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
-        ShadowButton *screenshot = [[ShadowButton alloc] initWithPrimaryImage:scIcon secondaryImage:nil identifier:@"sc" target:%c(ShadowHelper) action:@selector(screenshot)];
-        [screenshot addToVC: self];
-    }
-    if([ShadowData enabled: @"savebutton"]){
-        UIImage *save1 = [ShadowAssets sharedInstance].save;
-        UIImage *save2 = [ShadowAssets sharedInstance].saved;
-        ShadowButton *save = [[ShadowButton alloc] initWithPrimaryImage:save1 secondaryImage:save2 identifier:@"save" target:self action:@selector(saveSnap)];
-        [save addToVC: self];
-    }
-    
     
 }
 
@@ -238,9 +234,7 @@ static void loaded4(id self, SEL _cmd){
         
         if([ShadowData enabled: @"savebutton"]){
             [[ShadowOptionsManager sharedInstance] addOptionWithTitle: @"Save Media" identifier:@"shadow_save_media" block:^{
-                //dispatch_async(dispatch_get_main_queue(), ^{
                 [self performSelector:@selector(saveSnap)];
-                //});
             }];
         }
         
@@ -748,13 +742,14 @@ id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
         RelicHookMessageEx(%c(SCLocationManager), @selector(location), (void *)location, &orig_location);
         RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);
         RelicHookMessageEx(%c(SCPinnedConversationsDataCoordinator), @selector(hasPinnedConversationWithId:), (void *)pinned, &orig_pinned);
-        RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(viewDidLoad), (void *)loaded, &orig_loaded);//
-        RelicHookMessageEx(%c(SCContextV2SwipeUpGestureTracker), @selector(setPresented:animated:source:completion:), (void *)savebtn, &orig_savebtn);
+        RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(viewDidLoad), (void *)loaded, &orig_loaded);
         RelicHookMessageEx(%c(SCChatViewHeader), @selector(attachCallButtonsPane), (void *)hidebuttons, &orig_hidebuttons);
-        RelicHookMessageEx(%c(SCDiscoverFeedStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover, &orig_nodiscover);
-        RelicHookMessageEx(%c(SCDiscoverFeedPublisherStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover2, &orig_nodiscover2);
+        
         RelicHookMessageEx(%c(SCTalkChatSession), @selector(_composerCallButtonsOnStartCallMedia:), (void *)callstart, &orig_callstart);
         RelicHookMessageEx(%c(SCMapBitmojiLayerController), @selector(setSelectedUserId:animated:), (void *)teleport, &orig_teleport);
+        
+        RelicHookMessageEx(%c(SCDiscoverFeedStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover, &orig_nodiscover);
+        RelicHookMessageEx(%c(SCDiscoverFeedPublisherStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover2, &orig_nodiscover2);
         RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(isFullyVisible:), (void *)nomapswipe, &orig_nomapswipe);
         RelicHookMessageEx(%c(SIGNavigationBarView), @selector(initWithItems:leadingAligned:), (void *)nohighlights, &orig_nohighlights);
         RelicHookMessageEx(%c(SCSnapchatterTableViewCell), @selector(layoutSubviews), (void *)noquickadd, &orig_noquickadd);

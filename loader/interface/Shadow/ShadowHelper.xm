@@ -1,6 +1,6 @@
 #import "ShadowHelper.h"
 
-@implementation ShadowHelper
+@implementation ShadowHelper: NSObject
 +(void)screenshot{
     [[ShadowData sharedInstance] disable:@"screenshot"];
      [[NSNotificationCenter defaultCenter] postNotification: [NSNotification notificationWithName:UIApplicationUserDidTakeScreenshotNotification object:nil]];
@@ -103,6 +103,9 @@
     UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
     while (topVC.presentedViewController) topVC = topVC.presentedViewController;
     [topVC presentViewController: alert animated: true completion:nil];
+}
+-(void)video:(NSString *)videoPath didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo{
+    [[NSFileManager defaultManager] removeItemAtPath:videoPath error:nil];
 }
 @end
 
