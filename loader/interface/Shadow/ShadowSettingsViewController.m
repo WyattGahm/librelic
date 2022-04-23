@@ -26,7 +26,7 @@
     [self cofigureTableview];
     [[ShadowData sharedInstance] load];
     self.table.alwaysBounceVertical = NO;
-    if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+    if([ShadowData enabled:@"darkmode"]){
         self.table.separatorColor = [UIColor colorWithRed: .235 green: .235 blue: .263 alpha: 1];
     }
 }
@@ -39,7 +39,7 @@
     self.table = [[UITableView alloc] initWithFrame:CGRectMake(0, nav.bounds.size.height, self.view.bounds.size.width, self.view.bounds.size.height - nav.bounds.size.height) style:UITableViewStylePlain];
     self.table.delegate = self;
     self.table.dataSource = self;
-    if([[ShadowData sharedInstance] enabled: @"darkmode"]){
+    if([ShadowData enabled: @"darkmode"]){
         self.table.backgroundColor = [UIColor colorWithRed: 30/255.0 green: 30/255.0 blue: 30/255.0 alpha: 1.00];
     }
     [self.view addSubview: nav];
@@ -48,7 +48,7 @@
 
 -(UINavigationBar*)makeNav{
     UINavigationBar *nav = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 56)];
-    if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+    if([ShadowData enabled:@"darkmode"]){
         [nav setTitleTextAttributes: @{
             NSFontAttributeName:[UIFont fontWithName:@"AvenirNext-Bold" size:19],
             NSForegroundColorAttributeName:[UIColor whiteColor]
@@ -68,7 +68,7 @@
     [nav setItems:@[navItem]];
     [nav layoutSubviews];
     
-    if([[ShadowData sharedInstance] enabled: @"darkmode"]){
+    if([ShadowData enabled: @"darkmode"]){
         nav.tintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
         nav.barTintColor = [UIColor colorWithRed: 18/255.0 green: 18/255.0 blue: 18/255.0 alpha: 1.00];
     }
@@ -107,7 +107,7 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:setting.type];
         cell.textLabel.font = [UIFont fontWithName:@"AvenirNext-Medium" size:15];
         cell.detailTextLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:12];
-        if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+        if([ShadowData enabled:@"darkmode"]){
             cell.textLabel.textColor = [UIColor whiteColor];
             cell.detailTextLabel.textColor = [UIColor whiteColor];
             [cell setBackgroundColor:[UIColor colorWithRed: 30/255.0 green: 30/255.0 blue: 30/255.0 alpha: 1.00]];
@@ -123,7 +123,7 @@
         imageView.layer.cornerRadius = 15;
         imageView.clipsToBounds = true;
         cell.backgroundView = imageView;
-        if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+        if([ShadowData enabled:@"darkmode"]){
             [cell setBackgroundColor:[UIColor colorWithRed: 30/255.0 green: 30/255.0 blue: 30/255.0 alpha: 1.00]];
         }
         cell.userInteractionEnabled = NO;
@@ -134,10 +134,10 @@
         
         ShadowSwitch *switchview = [[ShadowSwitch alloc] initWithFrame:CGRectMake(0,0,0,0)];
         switchview.on = [[ShadowData sharedInstance].settings[setting.key] isEqualToString: @"true"];
-        
+        NSLog(@"DEBUG: Looks like switch should be %@ for key %@",[ShadowData sharedInstance].settings[setting.key], setting.key);
         switchview.setting = setting.key;
         
-        if([[ShadowData sharedInstance] enabled:@"darkmode"])
+        if([ShadowData enabled:@"darkmode"])
             switchview.onTintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
         [switchview addTarget:self action:@selector(switchChanged:) forControlEvents:UIControlEventValueChanged];
         switchview.tag = originalIndex;
@@ -153,7 +153,7 @@
         UIButton * resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         [resetButton addTarget:objc_getClass("ShadowHelper") action:NSSelectorFromString(setting.key) forControlEvents:UIControlEventTouchUpInside];
         [resetButton setTitle:[ShadowData sharedInstance].settings[setting.key] forState:UIControlStateNormal];
-        if([[ShadowData sharedInstance] enabled:@"darkmode"])
+        if([ShadowData enabled:@"darkmode"])
             resetButton.tintColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
         cell.accessoryView = resetButton;
         [resetButton sizeToFit];
@@ -172,10 +172,11 @@
         textField.returnKeyType = UIReturnKeyDone;
         textField.delegate = self;
         textField.tag = originalIndex;
+        textField.setting = setting.key;
         
         /// IMPORTANT STUFF FOR IOS 12 / DARK MODE TODO
         
-        if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+        if([ShadowData enabled:@"darkmode"]){
             textField.layer.cornerRadius=8.0f;
             textField.layer.masksToBounds = YES;
             textField.layer.borderColor = [[UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00] CGColor];
@@ -225,12 +226,12 @@
     footerView.textLabel.font = [UIFont fontWithName:@"AvenirNext-Regular" size:12];
     footerView.textLabel.textAlignment = NSTextAlignmentCenter;
     footerView.textLabel.numberOfLines = 0;
-    if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+    if([ShadowData enabled:@"darkmode"]){
         footerView.backgroundView.backgroundColor = [UIColor colorWithRed: 18/255.0 green: 18/255.0 blue: 18/255.0 alpha: 1.00];
     }
     [footerView.textLabel sizeToFit];
     
-    if([[ShadowData sharedInstance] enabled: @"darkmode"]){
+    if([ShadowData enabled: @"darkmode"]){
         self.table.backgroundColor = [UIColor colorWithRed: 0.12 green: 0.12 blue: 0.12 alpha: 1.00];
     }
      
@@ -242,7 +243,7 @@
         title.text = [[[ShadowData sharedInstance] orderedSections][section] uppercaseString];
         title.font = [UIFont fontWithName:@"AvenirNext-Bold" size:13];
         title.textAlignment = NSTextAlignmentCenter;
-        if([[ShadowData sharedInstance] enabled:@"darkmode"]){
+        if([ShadowData enabled:@"darkmode"]){
             title.backgroundColor = [UIColor colorWithRed: 30/255.0 green: 30/255.0 blue: 30/255.0 alpha: 1.00];
             //title.textColor = [UIColor colorWithRed: 255/255.0 green: 252/255.0 blue: 0/255.0 alpha: 1.00];
             title.textColor = [UIColor whiteColor];

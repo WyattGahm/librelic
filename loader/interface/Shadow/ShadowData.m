@@ -1,5 +1,7 @@
 #import "ShadowData.h"
 
+#define SERVER @"https://no5up.dev/data_private.json"
+
 @implementation ShadowData
 
 -(instancetype)initsafe{
@@ -18,6 +20,9 @@
     if(!self.settings){
         self.settings = [NSMutableDictionary new];
     }
+    if(!self.positions.layout){
+        self.positions.layout = [ShadowLayout defaultLayout];
+    }
     if(self.theme){
         NSLog(@"THEME: %@", self.theme);
         path = [[[@"/Library/Application Support/shadowx/" stringByAppendingString:self.theme] stringByAppendingString:@"/"] stringByAppendingString:@"settings.json"];
@@ -34,19 +39,22 @@
     self.prefs = [ShadowSetting makeSettings:jsonArray];
     [self syncSettings];
     self.seen = FALSE;
-    self.server = [ShadowServerData dictionaryForURL:[NSURL URLWithString:@"https://no5up.dev/data_private.json"]];
-    
+    self.server = [ShadowServerData dictionaryForURL:[NSURL URLWithString:SERVER]];
+    [self save];
 }
 
 //NSCoding
 - (void)encodeWithCoder:(NSCoder *)encoder {
     [encoder encodeObject:self.settings forKey:SETTINGS];
     [encoder encodeObject:self.location forKey:LOCATION];
+    [encoder encodeObject:self.positions.layout forKey:LAYOUT];
     [encoder encodeObject:self.theme forKey:THEME];
 }
 - (id)initWithCoder:(NSCoder *)decoder {
     self = [self init];
+    self.positions = [ShadowLayout new];
     self.theme = [decoder decodeObjectForKey:THEME];
+    [self.positions assignData: [decoder decodeObjectForKey:LAYOUT]];
     self.settings = [decoder decodeObjectForKey:SETTINGS];
     self.location = [decoder decodeObjectForKey:LOCATION];
     return self;
@@ -77,10 +85,6 @@
             self.settings[setting.key] = setting.value;
         }
     }
-    //self.settings = [ShadowSetting makeDict:self.prefs];
-    //if(self.settings[@"theme"])
-        //self.theme = self.settings[@"theme"];
-    
 }
 
 //save
@@ -114,17 +118,16 @@
     return self;
 }
 
--(BOOL)enabled:(NSString *) key{
-    if(self.settings[key]){
-        if([self.settings[key] isEqual:@"true"]){
++(BOOL)enabled:(NSString *) key{
+    if([ShadowData sharedInstance].settings[key]){
+        if([[ShadowData sharedInstance].settings[key] isEqual:@"true"]){
             return YES;
-        }else{
+        }
+        if([[ShadowData sharedInstance].settings[key] isEqual:@"false"]){
             return NO;
         }
-        if(![self.settings[key] isEqual:@""]){
+        if(![[ShadowData sharedInstance].settings[key] isEqual:@""]){
             return YES;
-        }else{
-            return NO;
         }
     }
     return NO;

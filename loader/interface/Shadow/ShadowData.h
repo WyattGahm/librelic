@@ -5,11 +5,12 @@
 
 #import "ShadowSetting.h"
 #import "ShadowServerData.h"
-
+#import "ShadowLayout.h"
 
 #define LOCATION @"location"
 #define SETTINGS @"settings"
 #define THEME @"theme"
+#define LAYOUT @"layout"
 #define FILE @"shadowxrelic.plist"
 
 @interface ShadowData:NSObject <NSCoding>
@@ -17,11 +18,12 @@
 @property NSMutableDictionary *settings;
 @property NSMutableDictionary *location;
 @property NSDictionary *server;
+@property ShadowLayout *positions;
 @property BOOL seen;
 @property NSString *theme;
 -(void)save;
 -(id)load;
--(BOOL)enabled:(NSString *) key;
++(BOOL)enabled:(NSString *) key;
 +(BOOL)isFirst;
 -(void)disable:(NSString *)key;
 +(void)resetSettings;

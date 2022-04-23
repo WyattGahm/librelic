@@ -2,7 +2,7 @@ Package: com.wyattgahm.relicloader
 Name: relicloader
 Depends: mobilesubstrate, com.opa334.choicy
 Replaces: com.wyattgahm
-Version: 3.1.0
+Version: 3.2.0
 Architecture: iphoneos-arm
 Description: A ShadowX implementation for librelic 2.0
 Maintainer: no5up + Kanji

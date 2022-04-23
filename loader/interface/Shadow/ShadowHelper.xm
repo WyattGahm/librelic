@@ -7,7 +7,7 @@
     [[ShadowData sharedInstance] enable:@"screenshot"];
  }
 +(void)banner:(NSString*)text color:(NSString *)color alpha:(float)alpha{
-    if([[ShadowData sharedInstance] enabled: @"showbanners"]){
+    if([ShadowData enabled: @"showbanners"]){
         unsigned rgbValue = 0;
         NSScanner *scanner = [NSScanner scannerWithString:color];
         [scanner setScanLocation:1];
@@ -17,7 +17,7 @@
     }
 }
 +(void)banner:(NSString*)text color:(NSString *)color{
-    if([[ShadowData sharedInstance] enabled: @"showbanners"]){
+    if([ShadowData enabled: @"showbanners"]){
         [self banner:text color:color alpha:.75];
     }
 }
@@ -71,7 +71,7 @@
 }
 +(void)reset{
     SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset all settings to default and close the App. Is that okay?"];
-    SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
+    SIGAlertDialogAction *reset = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
         [ShadowData resetSettings];
         [alert dismissViewControllerAnimated:YES completion:nil];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
@@ -82,7 +82,24 @@
         [alert dismissViewControllerAnimated:YES completion:nil];
     }];
     
-    [alert _setActions: @[back,call]];
+    [alert _setActions: @[back,reset]];
+    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+    [topVC presentViewController: alert animated: true completion:nil];
+}
+
++(void)resetlayout{
+    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset button positions to default. Is that okay?"];
+    SIGAlertDialogAction *reset = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Reset" actionBlock:^(){
+        [[ShadowData sharedInstance].positions assignData: [ShadowLayout defaultLayout]];
+        [[ShadowData sharedInstance] save];
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Back" actionBlock:^(){
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    
+    [alert _setActions: @[back,reset]];
     UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
     while (topVC.presentedViewController) topVC = topVC.presentedViewController;
     [topVC presentViewController: alert animated: true completion:nil];

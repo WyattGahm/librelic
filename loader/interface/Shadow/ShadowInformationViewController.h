@@ -34,7 +34,6 @@
 
 -(void)viewDidLoad{
     [super viewDidLoad];
-    //self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     [self buildBody];
     [self buildNav];
     //[self.view setBackgroundColor:self.body.backgroundColor];
