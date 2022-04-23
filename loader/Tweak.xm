@@ -135,43 +135,6 @@ static void save(SCOperaPageViewController* self, SEL _cmd) {
   }
 }
 
-static void (*orig_savebtn)(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4);
-static void savebtn(id self, SEL _cmd, _Bool arg1, _Bool arg2, id arg3, id arg4){
-    orig_savebtn(self, _cmd, arg1, arg2, arg3, arg4);
-    
-    @try{
-        if(![ShadowData enabled: @"save"]) return;
-        if([ShadowData enabled: @"savebutton"]) return;
-        
-        SCContextV2SwipeUpViewController *menu = (SCContextV2SwipeUpViewController *)[self presentedViewController];
-        SCContextV2ActionMenuViewController *action = (SCContextV2ActionMenuViewController *)[[menu childViewControllers] objectAtIndex: 1];
-        UIStackView *stack = [[[[MSHookIvar<UIStackView *>(action, "_stackView") subviews] objectAtIndex:0] subviews] objectAtIndex:0];
-        if([stack.arrangedSubviews lastObject].tag == 1) return;
-        UIView *div = [UIView new];
-        div.translatesAutoresizingMaskIntoConstraints = false;
-        [div addConstraint: [div.heightAnchor constraintEqualToConstant: .666666]];
-        div.backgroundColor = [UIColor colorWithRed: 0.21 green: 0.21 blue: 0.21 alpha: 1.00];
-        if(stack.arrangedSubviews.count > 0) [stack addArrangedSubview: div];
-        SIGActionSheetCell *newOption = [(SIGActionSheetCell *)[%c(SIGActionSheetCell) optionCellWithText:@""] initWithStyle:0];
-
-        newOption.titleText = @"Save to Camera Roll";
-        
-        
-        //figure out internal way fo using selectors instead of gesture recog
-        /* [newOption _addTarget:self action:@selector(saveSnap)]; */
-        [newOption setTrailingAccessoryView:[[UIImageView alloc] initWithImage:[ShadowAssets sharedInstance].save]];
-        //saveCell = newOption;
-        SCOperaPageViewController *opera = (SCOperaPageViewController *)[[self attachedToView] performSelector:@selector(_operaPageViewController)];
-        for(int i = 0; i < newOption.gestureRecognizers.count;i++)
-            (void)[[newOption.gestureRecognizers objectAtIndex:i] initWithTarget:opera action:@selector(saveSnap)];
-        newOption.tag = 1;
-        if(stack.arrangedSubviews.count > 0) [stack addArrangedSubview: div];
-        [stack addArrangedSubview: newOption];
-    }@catch(id anException) {
-        [ShadowHelper banner:@"Incompatible save button!" color:@"#FF0000"];
-    }
-}
-
 static void (*orig_markheader)(id self, SEL _cmd, NSUInteger arg1);
 static void markheader(id self, SEL _cmd, NSUInteger arg1){
     orig_markheader(self, _cmd, arg1);
@@ -241,7 +204,7 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
         }else{
             UIImage *seen1 = [ShadowAssets sharedInstance].seen;
             UIImage *seen2 = [ShadowAssets sharedInstance].seened;
-            ShadowButton *seen = [[ShadowButton alloc] initWithPrimaryImage:seen1 secondaryImage:seen2 identifier:@"seen" target:self action:@selector(markSeen)];
+            ShadowButton *seen = [[ShadowButton alloc] initWithPrimaryImage:seen1 secondaryImage:seen2 identifier:@"seen" target:self.delegate action:@selector(markSeen)];
             [self.view addSubview: seen];
         }
     }
@@ -257,20 +220,37 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
         [save addToVC: self];
     }
     
-    [[ShadowOptionsManager sharedInstance] clear];
-    [[ShadowOptionsManager sharedInstance] addOptionWithTitle: @"Save Media" identifier:@"shadow_save_media" block:^{
-        dispatch_async(dispatch_get_main_queue(), ^{
-        [self performSelector:@selector(saveSnap)];
-        });
     
-    }];
-    
-    [[ShadowOptionsManager sharedInstance] addOptionWithTitle: @"Mark Seen" identifier:@"shadow_mark_seen" block:^{
-        [self performSelector:@selector(markSeen)];
-        
-    }];
 }
 
+static void (*orig_loaded4)(id self, SEL _cmd);
+static void loaded4(id self, SEL _cmd){
+    orig_loaded4(self, _cmd);
+    
+    [[ShadowOptionsManager sharedInstance] clear];
+    
+    if([ShadowData enabled: @"nativeui"]){
+        if([ShadowData enabled: @"screenshotbtn"]){
+            [[ShadowOptionsManager sharedInstance] addOptionWithTitle: @"Mark Captured" identifier:@"shadow_screenshot" block:^{
+                [ShadowHelper screenshot];
+            }];
+        }
+        
+        if([ShadowData enabled: @"savebutton"]){
+            [[ShadowOptionsManager sharedInstance] addOptionWithTitle: @"Save Media" identifier:@"shadow_save_media" block:^{
+                //dispatch_async(dispatch_get_main_queue(), ^{
+                [self performSelector:@selector(saveSnap)];
+                //});
+            }];
+        }
+        
+        if([ShadowData enabled: @"seenbutton"]){
+            [[ShadowOptionsManager sharedInstance] addOptionWithTitle: @"Mark Seen" identifier:@"shadow_mark_seen" block:^{
+                [self performSelector:@selector(markSeen)];
+            }];
+        }
+    }
+}
 
 
 static void (*orig_loaded)(id self, SEL _cmd);
@@ -524,11 +504,11 @@ void confirmshot(id self, SEL _cmd){
 }
 %end
 
-void markSeen(SCOperaPageViewController * self, SEL _cmd){
+void markSeen(SCOperaViewController *self, SEL _cmd){
     if([ShadowData enabled: @"closeseen"]){
         [ShadowHelper banner:@"Marking as SEEN" color:@"#00FF00"];
         [ShadowData sharedInstance].seen = TRUE;
-        [((SCOperaViewController*)self.delegate) _advanceToNextPage:YES];
+        [self _advanceToNextPage:YES];
     }else{
         if([ShadowData sharedInstance].seen == FALSE){
             [ShadowHelper banner:@"Marking as SEEN" color:@"#00FF00"];
@@ -751,7 +731,6 @@ id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
         RelicHookMessageEx(%c(SCURLAttachmentHandler),@selector(openURL:baseView:), (void *)openurl, &orig_openurl);
         RelicHookMessageEx(%c(SCContextV2BrowserPresenter),@selector(presentURL:preferExternal:metricParams:fromViewController:completion:), (void *)openurl2, &orig_openurl2);
         RelicHookMessage(%c(SCOperaPageViewController), @selector(saveSnap), (void *)save);
-        RelicHookMessage(%c(SCOperaPageViewController), @selector(markSeen), (void *)markSeen);
         RelicHookMessageEx(%c(SCChatMainViewController), @selector(viewDidFullyAppear), (void *)loaded3, &orig_loaded3);
         RelicHookMessage(%c(SCChatMainViewController), @selector(screenshot), (void *)screenshotspam);
         RelicHookMessageEx(%c(SIGPullToRefreshView), @selector(setHeight:), (void *)updateghost, &orig_updateghost);
@@ -761,6 +740,10 @@ id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
 
         RelicHookMessageEx(%c(SCContextActionMenuOperaDataSource), @selector(actionForOption:), (void *)menuactions, &orig_menuactions);
         RelicHookMessageEx(%c(SCContextActionMenuOperaDataSource), @selector(setActionMenuItems:), (void *)menuoptions, &orig_menuoptions);
+        
+        RelicHookMessage(%c(SCOperaViewController), @selector(markSeen), (void *)markSeen);
+        RelicHookMessage(%c(SCOperaViewController), @selector(saveSnap), (void *)save);
+        RelicHookMessageEx(%c(SCOperaViewController), @selector(viewDidLoad), (void *)loaded4, &orig_loaded4);
         
         RelicHookMessageEx(%c(SCLocationManager), @selector(location), (void *)location, &orig_location);
         RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);
@@ -776,6 +759,7 @@ id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
         RelicHookMessageEx(%c(SIGNavigationBarView), @selector(initWithItems:leadingAligned:), (void *)nohighlights, &orig_nohighlights);
         RelicHookMessageEx(%c(SCSnapchatterTableViewCell), @selector(layoutSubviews), (void *)noquickadd, &orig_noquickadd);
         RelicHookMessageEx(%c(SIGPanningGestureRecognizer), @selector(isEdgePan), (void *)cellswipe, &orig_cellswipe);
+        
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowShowsAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowEmbeddedWebViewAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowPublicStoriesAds), (void *)noads);

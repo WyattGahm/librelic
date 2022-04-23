@@ -80,6 +80,9 @@ static inline void destroyHook(HashMapRef map, id obj_or_class, SEL _cmd) { //ma
 
 // API
 extern "C" void RelicHookMessage(Class cls, SEL sel, void * replacement){
+    if(!cls){
+        NSLog(@"WARN: %@ is NOT a valid class. Did you make a typo?")
+    }
     performBlockOnProperThread(^(){
         addHook(hookMap, cls, sel, replacement);
     });
