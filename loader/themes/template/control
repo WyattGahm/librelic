@@ -1,0 +1,8 @@
+Package: com.no5up.themetemplate
+Name: template
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: A theme for relicloader 3.2.0+
+Maintainer: no5up
+Author: no5up
+Section: Themes

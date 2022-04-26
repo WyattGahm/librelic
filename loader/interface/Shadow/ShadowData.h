@@ -11,6 +11,7 @@
 #define SETTINGS @"settings"
 #define THEME @"theme"
 #define LAYOUT @"layout"
+#define FIRST @"first"
 #define FILE @"shadowxrelic.plist"
 
 @interface ShadowData:NSObject <NSCoding>
@@ -22,6 +23,7 @@
 @property BOOL seen;
 @property NSMutableDictionary<NSString*, NSData*> *audionotes;
 @property NSString *theme;
+@property NSString *first;
 -(void)save;
 -(id)load;
 +(BOOL)enabled:(NSString *) key;

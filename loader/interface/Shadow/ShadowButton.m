@@ -28,8 +28,7 @@
     [self addGestureRecognizer:tap1];
     [self addGestureRecognizer:tap2];
     [self addGestureRecognizer:swipe];
-    if(![ShadowData enabled:@"lockbuttons"])
-        [self addGestureRecognizer:pan];
+    [self addGestureRecognizer:pan];
     return self;
 }
 -(void)changeImage{
@@ -38,10 +37,12 @@
 - (void)wasDragged:(UIPanGestureRecognizer *)recognizer {
     UIImageView *button = (UIImageView *)recognizer.view;
     CGPoint translation = [recognizer translationInView:button];
-    button.center = CGPointMake(button.center.x + translation.x, button.center.y + translation.y);
-    [recognizer setTranslation:CGPointZero inView:button];
-    NSLog(@"DEBUG 1: %@",self.identifier);
-    [[ShadowData sharedInstance].positions setCenterForID: self.identifier value: button.center];
+    if(![ShadowData enabled:@"lockbuttons"]){
+        button.center = CGPointMake(button.center.x + translation.x, button.center.y + translation.y);
+        [recognizer setTranslation:CGPointZero inView:button];
+        NSLog(@"DEBUG 1: %@",self.identifier);
+        [[ShadowData sharedInstance].positions setCenterForID: self.identifier value: button.center];
+    }
 }
 -(void)handlePinch:(UISwipeGestureRecognizer *)recognizer{
     NSLog(@"PINCHING: %ld",recognizer.direction);

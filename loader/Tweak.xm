@@ -256,7 +256,7 @@ static void loaded(id self, SEL _cmd){
     
     orig_loaded(self, _cmd);
     
-    if(![ShadowData isFirst]) {
+    if([ShadowData isFirst]) {
         UIViewController *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Hello and Welcome!" description:@"Shadow X has been loaded and injected using librelic 2.0.\n\nUsage: Tap \"Shadow X\" to open the settings panel.\n\nHave fun, and remember to report any and all bugs! 👻\n\nDesigned privately by no5up and Kanji"];
         UILabel *title = MSHookIvar<UILabel*>(alert,"_titleLabel");
         RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)title];
@@ -422,7 +422,8 @@ static void settingstext(id self, SEL _cmd){
     if(![table respondsToSelector:@selector(paddedTableFooterView)]) return;
     UILabel * label = (UILabel *)[table performSelector:@selector(paddedTableFooterView)];
     if(label.tag != 1){
-        label.text = [[label.text componentsSeparatedByString:@"\n"][0] stringByAppendingString: @"\nShadow X (relicloader) | librelic 2.0"];  //@"\nlibrelic 2\nShadow X (relicloader)"];
+        NSString *text = [NSString stringWithFormat: @"\n%s v%s | librelic 2.1", SHADOW_PROJECT, SHADOW_VERSION];
+        label.text = [[label.text componentsSeparatedByString:@"\n"][0] stringByAppendingString: text];
         label.tag = 1;
     }
 }
@@ -434,7 +435,7 @@ id location(id self, SEL _cmd){
     double longitude = [[ShadowData sharedInstance].location[@"Longitude"] doubleValue];
     double latitude = [[ShadowData sharedInstance].location[@"Latitude"] doubleValue];
     CLLocation * newlocation = [[CLLocation alloc]initWithLatitude: latitude longitude: longitude];
-    return newlocation;//[[CLLocation alloc]initWithLatitude:35.8800 longitude:76.5151];
+    return newlocation;
 }
 
 void (*orig_openurl)(id self, SEL _cmd, id arg1, id arg2);
@@ -865,6 +866,7 @@ void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
 }
 
 %dtor {
+    [[ShadowData sharedInstance] save];
     NSLog(@"[Shadow X + Relic] Hooks Unloaded (App Closed)");
 }
 

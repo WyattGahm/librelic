@@ -6,9 +6,9 @@
 
 -(instancetype)initsafe{
     NSData *raw = [NSData dataWithContentsOfFile:[ShadowData fileWithName:FILE]];
-    //[NSKeyedUnarchiver unarchivedObjectOfClass:[self class] fromData:raw error:nil];
     ShadowData *data = [NSKeyedUnarchiver unarchiveObjectWithData:raw];
     if(!data){
+        NSLog(@"WHY IS DATA  NOT WOKTING");
         data = [ShadowData new];
     }
     [data setup];
@@ -49,6 +49,7 @@
     [encoder encodeObject:self.location forKey:LOCATION];
     [encoder encodeObject:self.positions.layout forKey:LAYOUT];
     [encoder encodeObject:self.theme forKey:THEME];
+    [encoder encodeObject:self.first forKey:FIRST];
 }
 - (id)initWithCoder:(NSCoder *)decoder {
     self = [self init];
@@ -57,6 +58,7 @@
     [self.positions assignData: [decoder decodeObjectForKey:LAYOUT]];
     self.settings = [decoder decodeObjectForKey:SETTINGS];
     self.location = [decoder decodeObjectForKey:LOCATION];
+    self.first = [decoder decodeObjectForKey:FIRST];
     return self;
 }
 
@@ -78,10 +80,14 @@
     self.settings = [NSMutableDictionary dictionaryWithDictionary:data.settings];
     self.location = [NSMutableDictionary dictionaryWithDictionary:data.location];
     self.theme = data.theme;
+    [self.positions assignData:data.positions.layout];
+    self.first = data.first;
 }
 -(void)syncSettings{
     for(ShadowSetting* setting in self.prefs){
         if(!self.settings[setting.key]){
+            self.settings[setting.key] = setting.value;
+        }else if ([setting.type isEqual: @"switch"] || [setting.type isEqual: @"image"]){
             self.settings[setting.key] = setting.value;
         }
     }
@@ -180,10 +186,22 @@
 }
 //utils
 +(BOOL)isFirst{
-    return [[NSFileManager defaultManager] fileExistsAtPath:[ShadowData fileWithName:FILE]];
+    ShadowData *data = [ShadowData sharedInstance];
+    if([data.first isEqual:@"true"]){
+        data.first = @"false";
+        return YES;
+    }
+    return NO;
+    [data save];
 }
 +(void)resetSettings{
-    [[NSFileManager defaultManager] removeItemAtPath:[ShadowData fileWithName:FILE] error:nil];
+    //[[NSFileManager defaultManager] removeItemAtPath:[ShadowData fileWithName:FILE] error:nil];
+    ShadowData *data = [ShadowData sharedInstance];
+    data.first = @"true";
+    data.settings = nil;
+    data.location = nil;
+    [data save];
+    
 }
 +(NSString *)fileWithName:(NSString *)name{
     return [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject].path stringByAppendingPathComponent:name];

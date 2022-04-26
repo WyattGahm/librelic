@@ -7,8 +7,10 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = relicloader
 relicloader_FILES = Tweak.xm $(wildcard interface/*/*.*m)
-relicloader_CFLAGS = -fobjc-arc -Iinclude -Iinterface/Shadow -Iinterface/LocationPicker -Iinterface/RainbowRoad -Iinterface/XLLogger
+relicloader_CFLAGS += -fobjc-arc -Iinclude -Iinterface/Shadow -Iinterface/LocationPicker -Iinterface/RainbowRoad -Iinterface/XLLogger
 relicloader_CFLAGS += -Wno-arc-performSelector-leaks -Wno-format-security -Wno-unused-function -Wno-unused-variable -Wno-deprecated-declarations
+relicloader_CFLAGS += -DSHADOW_VERSION='"3.2.3"'
+relicloader_CFLAGS += -DSHADOW_PROJECT='"RelicLoader"'
 relicloader_EXTRA_FRAMEWORKS := CoreGraphics AssetsLibrary UIKit AVKit CoreFoundation QuartzCore MobileCoreServices AVFoundation CoreLocation MapKit
 relicloader_CODESIGN_FLAGS=-Sentitlements.xml
 include $(THEOS_MAKE_PATH)/tweak.mk
