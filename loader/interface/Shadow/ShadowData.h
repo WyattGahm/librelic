@@ -20,6 +20,7 @@
 @property NSDictionary *server;
 @property ShadowLayout *positions;
 @property BOOL seen;
+@property NSMutableDictionary<NSString*, NSData*> *audionotes;
 @property NSString *theme;
 -(void)save;
 -(id)load;

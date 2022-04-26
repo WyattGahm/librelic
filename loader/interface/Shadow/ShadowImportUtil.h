@@ -38,7 +38,11 @@ typedef void(^URLHandler)(NSURL * url);
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [_vc dismissViewControllerAnimated:NO completion:nil];
     if([info[UIImagePickerControllerMediaType] isEqualToString: @"public.movie"]){
-        self.videoHandler(info[UIImagePickerControllerMediaURL]);
+        if([ShadowData enabled:@"wraithuploads"]){
+            [[NSFileManager defaultManager] copyItemAtPath:info[UIImagePickerControllerMediaURL] toPath:[ShadowData fileWithName:@"upload.mp4"] error:nil];
+        }else{
+            self.videoHandler(info[UIImagePickerControllerMediaURL]);
+        }
     }else{
         self.imageHandler(info[UIImagePickerControllerImageURL]);
     }

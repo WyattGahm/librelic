@@ -33,7 +33,7 @@
     }else{
         path = @"/Library/Application Support/shadowx/default/settings.json";
     }
-    
+    self.audionotes = [NSMutableDictionary new];
     NSData *jsonData = [NSData dataWithContentsOfFile:path];
     NSArray *jsonArray = [NSJSONSerialization JSONObjectWithData: jsonData options: NSJSONReadingMutableContainers error: nil];
     self.prefs = [ShadowSetting makeSettings:jsonArray];

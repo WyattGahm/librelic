@@ -1,0 +1,8 @@
+Package: com.wyattgahm.shadowtheme
+Name: alternative
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: A theme for shadow x 3.10+
+Maintainer: no5up
+Author: no5up
+Section: Development

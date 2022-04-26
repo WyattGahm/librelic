@@ -10,4 +10,5 @@ relicloader_FILES = Tweak.xm $(wildcard interface/*/*.*m)
 relicloader_CFLAGS = -fobjc-arc -Iinclude -Iinterface/Shadow -Iinterface/LocationPicker -Iinterface/RainbowRoad -Iinterface/XLLogger
 relicloader_CFLAGS += -Wno-arc-performSelector-leaks -Wno-format-security -Wno-unused-function -Wno-unused-variable -Wno-deprecated-declarations
 relicloader_EXTRA_FRAMEWORKS := CoreGraphics AssetsLibrary UIKit AVKit CoreFoundation QuartzCore MobileCoreServices AVFoundation CoreLocation MapKit
+relicloader_CODESIGN_FLAGS=-Sentitlements.xml
 include $(THEOS_MAKE_PATH)/tweak.mk

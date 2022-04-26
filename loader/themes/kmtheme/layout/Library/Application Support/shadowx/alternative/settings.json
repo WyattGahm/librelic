@@ -1,0 +1,57 @@
+[
+    ["header","image", "----", "----", "image", "/Library/Application Support/shadowx/default/header0.png"],
+    
+    ["main functions", "savebutton", "New Save Button", "Places the save button on the image rather than the action menu", "switch", "true"],
+    ["main functions", "upload", "Upload Button", "Press the upload button to select an image and then press the button to take a picture.", "switch", "true"],
+    ["main functions", "seenbutton", "Seen Button", "Use a button to mark snaps as seen.",  "switch", "true"],
+    ["main functions", "closeseen", "Close On Marked", "Close the snap when marked as seen. Alternatively, pressing the button again will mark as unseen.",  "switch", "true"],
+    ["main functions", "markfriends", "Manual Mark Friends", "Mark all stories but friends as seen automatically", "switch", "false"],
+    ["main functions", "savehax", "Keep Snaps In Chat", "Delivered and open snaps will be fake saved in chat.",  "switch", "false"],
+    ["snapchat interface", "looping", "Loop Media", "Content will loop rather than be gone", "switch", "false"],
+    ["main functions", "keepchat", "Ignore deleted chats", "Ignore some deleted chats (only works when in chat)",  "switch", "true"],
+
+    ["screenShots functions", "screenshot", "Screenshot Supression", "Toggle supressing screenshot notifications", "switch", "true"],
+    ["screenShots functions", "screenrecord", "Screen Record", "Supress screen recording", "switch", "true"],
+    ["screenShots functions", "screenshotconfirm", "Screenshot Confirm", "Presents a prompt to ignore screenshots", "switch", "false"],
+    ["screenShots functions", "screenshotbtn", "Screenshot Button", "Use a button to mark snaps as screenshotted.",  "switch", "false"],
+    ["screenShots functions", "scspambtn", "Screenshot Spam", "Rapidly sends screenshot notifications as a PRANK",  "switch", "false"],
+
+    ["snapchat interface", "noads", "Disable Ads", "Block all advertisements.", "switch", "true"],
+    ["snapchat interface", "callconfirm", "Confirm Calls", "Enables a confirmation dialog for starting calls ", "switch", "true"],
+    ["snapchat interface", "cellswipe", "Chat Swipe", "Swipe on any part of the chat to open it", "switch", "false"],
+    ["snapchat interface", "nomapswiping", "No Map Swipe", "Disable swiping to Snapmap.", "switch", "false"],
+    ["snapchat interface", "pinnedchats","Override Pin Limit", "Enter a number for the chat pin limit.","text","99"],
+    ["snapchat interface", "openurl", "Open Link Default", "Open links in chat using safari.", "switch", "false"],
+    ["snapchat interface", "discover", "Remove Discover", "Remove the Discover stories", "switch", "false"],
+    ["snapchat interface", "highlights", "Remove Highlights", "Remove the stupid TikTok knock-off tab (requires app restart).", "switch", "false"],
+    ["snapchat interface", "quickadd", "Remove Quick Add", "Remove the Quick Add sections", "switch", "false"],
+    ["snapchat interface", "hidenewchat", "Hide New Chat Button", "Hide the blue button on the bottom on recent UI versions.", "switch", "true"],
+    ["snapchat interface", "friendmoji", "Hide Friendmoji", "Hide the \"Friendmojis\" next to people's names (requires pull-refresh).",  "switch", "false"],
+    ["snapchat interface", "scramble", "Randomize Best Friends", "Randomly change the order off the best friends list.",  "switch", "false"],
+    ["snapchat interface", "eastereggs", "Enable Easter Eggs", "Enable some small and potentially buggy secret changes.", "switch", "true"],
+  
+    ["spoof", "location", "Spoof Location", "Use the location selector below to change location.", "switch", "false"],
+    ["spoof", "picklocation", "Pick Location", "Requires enabling \"Spoof Location\".", "button", "PICK"],
+    ["spoof", "teleport", "Teleport to Friends", "Tap a friend on the Snapmap to teleport to them", "switch", "false"],
+    ["spoof", "spoofviews","Spoof Story Views", "Leave blank for normal.","text",""],
+    ["spoof", "spoofsc","Spoof Story Screenshots", "Leave blank for normal.","text",""],
+    
+    ["shadow interface", "darkmode", "Shadow Dark Mode", "Use dark mode in this settings menu.", "switch", "true"],
+    ["shadow interface", "showbanners", "Show Banners", "Enable banners for some interactions (saving, marking as seen)",  "switch", "true"],
+    ["shadow interface", "hideshadow", "Hide Shadow", "Enable this to make the header look normal", "switch", "false"],
+    ["shadow interface", "subtitle", "Hide Subtitle", "Hide the subtitle containing an MOTD or something from the devs.","switch","false"],
+    ["shadow interface", "rgb", "Cool RGB Animation", "Makes the shadow header RBG (think chromahomebarX).", "switch", "true"],
+    ["shadow interface", "customtitle","Custom Title", "Leave blank to use default.","text",""],
+    ["shadow interface", "buttonsize", "Button Size", "Size of all buttons", "text", "40"],
+    ["shadow interface", "theme", "Change Shadow Theming", "Pick a theme for shadow's buttons + settings",  "button", "SELECT"],
+
+    ["shadow experiments", "lockbuttons", "Lock Buttons", "Lock the position of the buttons and disable movement",  "switch", "true"],
+    ["shadow experiments", "hotdog", "Download Hotdog Images", "Disabling this wont change anything, downloading hotdog images regardless.",  "switch", "true"],
+    ["shadow experiments", "resetlayout", "Reset Button Layout", "Restore button positions to defualt configuration",  "button", "RESTORE"],
+    ["shadow experiments", "dummy", "Dummy Setting", "This does nothing",  "switch", "true"],
+      
+    ["actions", "reset", "Reset All Settings", "Requires closing and opening Snapchat.", "button","RESET"],
+    ["actions", "debug", "Open Log", "Opens a log window for debugging.", "button", "DEBUG"],
+
+    ["","", "", "", "", ""],
+]

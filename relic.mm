@@ -52,7 +52,12 @@ static inline void * getHook(id self, SEL _cmd) {
     if(!self || !_cmd) return NULL;
     Class metaclass = object_getClass(self);
     if(!metaclass) return NULL;
-    HashMapRef classmap = (HashMapRef)HMGet(hookMap, (void *)metaclass);
+    HashMapRef classmap;
+    if(class_isMetaClass(metaclass)){
+        classmap = (HashMapRef)HMGet(hookMap, (void *)self);
+    }else{
+        classmap = (HashMapRef)HMGet(hookMap, (void *)metaclass);
+    }
     if(!classmap) return NULL;
     return (void *)HMGet(classmap, _cmd);
 }
@@ -80,9 +85,6 @@ static inline void destroyHook(HashMapRef map, id obj_or_class, SEL _cmd) { //ma
 
 // API
 extern "C" void RelicHookMessage(Class cls, SEL sel, void * replacement){
-    if(!cls){
-        NSLog(@"WARN: %@ is NOT a valid class. Did you make a typo?")
-    }
     performBlockOnProperThread(^(){
         addHook(hookMap, cls, sel, replacement);
     });

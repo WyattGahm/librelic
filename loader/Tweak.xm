@@ -46,6 +46,10 @@
 #import "SIGPullToRefreshGhostView.h"
 #import "SCOperaViewController.h"
 #import "SCSwipeViewContainerViewController.h"
+#import "SCOperaActionMenuV2Option.h"
+#import "SCMapBitmojiCluster.h"
+#import "SCManagedRecordedVideo.h"
+#import "SCFuture.h"
 
 #import "util.h"
 #import "ShadowData.h"
@@ -58,6 +62,8 @@
 #import "LocationPicker.h"
 #import "XLLogerManager.h"
 #import "ShadowButton.h"
+
+#define AUDIONOTES_DIR @"/private/var/mobile/Documents/audionotes/"
 
 
 static void (*orig_tap)(id self, SEL _cmd, id arg1);
@@ -249,6 +255,16 @@ static void (*orig_loaded)(id self, SEL _cmd);
 static void loaded(id self, SEL _cmd){
     
     orig_loaded(self, _cmd);
+    
+    if(![ShadowData isFirst]) {
+        UIViewController *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Hello and Welcome!" description:@"Shadow X has been loaded and injected using librelic 2.0.\n\nUsage: Tap \"Shadow X\" to open the settings panel.\n\nHave fun, and remember to report any and all bugs! 👻\n\nDesigned privately by no5up and Kanji"];
+        UILabel *title = MSHookIvar<UILabel*>(alert,"_titleLabel");
+        RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)title];
+        [effect resume];
+        [self presentViewController:alert animated:YES completion:nil];
+        [[ShadowData sharedInstance] save];
+    }
+    
     if([ShadowData enabled: @"upload"]){
         if(![MSHookIvar<NSString *>(self, "_debugName") isEqual: @"Camera"]){
             NSLog(@"FAILED TO IDENTIFY CAMERA");
@@ -258,14 +274,7 @@ static void loaded(id self, SEL _cmd){
         ShadowButton *uploadButton = [[ShadowButton alloc] initWithPrimaryImage:upload secondaryImage:nil identifier:@"upload" target:self action:@selector(upload)];
         [uploadButton addToVC: self];
     }
-    if(![ShadowData isFirst]) {
-        UIViewController *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Hello and Welcome!" description:@"Shadow X has been loaded and injected using librelic 2.0.\n\nUsage: Tap \"Shadow X\" to open the settings panel.\n\nHave fun, and remember to report any and all bugs! 👻\n\nDesigned privately by no5up and Kanji"];
-        UILabel *title = MSHookIvar<UILabel*>(alert,"_titleLabel");
-        RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)title];
-        [effect resume];
-        [self presentViewController:alert animated:YES completion:nil];
-        [[ShadowData sharedInstance] save];
-    }
+    
     
     if(![ShadowAssets sharedInstance].upload && ![ShadowAssets sharedInstance].save){
         [ShadowHelper banner:@"ERROR LOADING THEME" color:@"#FF0000"];
@@ -482,9 +491,10 @@ void confirmshot(id self, SEL _cmd){
 }
 
 %hook NSNotificationCenter
-- (void)addObserver:(id)arg1 selector:(SEL)arg2 name:(id)arg3 object:(id)arg4 {
+- (void)addObserver:(NSObject*)arg1 selector:(SEL)arg2 name:(id)arg3 object:(id)arg4 {
     NSString *data = arg3;
     if([data isEqual: @"UIApplicationUserDidTakeScreenshotNotification"]){
+        NSLog(@"ADDING OBSERVER TO *[%@ %s]", arg1.class, sel_getName(arg2));
         RelicHookMessage([arg1 class], arg2, (void *)confirmshot);
     }
     if([data isEqual: @"SCUserDidScreenRecordContentNotification"]){
@@ -574,13 +584,6 @@ void screenshotspam(id self, SEL _cmd){
     [self performSelector:@selector(userDidTakeScreenshot)];
 }
 
-//-[SCMapBitmojiLayerController setSelectedUserId:selectionStyle:showsCallouts:duration:]
-
-
-@interface SCMapBitmojiCluster:NSObject
-@property CLLocationCoordinate2D centerCoordinate;
-@end
-
 void (*orig_teleport)(id self, SEL _cmd, id arg1, BOOL arg2);
 void teleport(id self, SEL _cmd, id arg1, BOOL arg2){
     orig_teleport(self, _cmd, arg1, arg2);
@@ -600,14 +603,6 @@ void teleport(id self, SEL _cmd, id arg1, BOOL arg2){
 }
 
 
-
-//_sendSnapNoSendToViewWithAddToMyStory:0x0 recipientUsernames:0x285fa0180 recipientUserIds:0x2891b96e0 mischiefs:0x1f82e44a8 selectedOurStory:0x0 selectedCustomStories:0x285fa2760 businessIds:0x285fa2400 appStories:0x285fa0600
-
-
-//_sendToRecipients:storiesPostingConfig:businessIds:groups:appStories:additionalText:
-//_handleRequestAndInviteFeaturesAndSendSnap:0x2879153b0 sendToRecipients:0x0 showSendToLoadingOverlay:0x0 recipientUsernames:0x285fa0180 mischiefs:0x1f82e44a8]
-//_sendSnapNoSendToViewWithAddToMyStoryAfterInterceptorCheck:0x0 recipientUsernames:0x285fa0180 recipientUserIds:0x2891b96e0 mischiefs:0x1f82e44a8 selectedOurStory:0x0 selectedCustomStories:0x285fa2760 businessIds:0x285fa2400 appStories:0x285fa0600]
- 
 void (*orig_callstart)(id self, SEL _cmd, long arg1);
 void callstart(id self, SEL _cmd, long arg1){
     if(![ShadowData enabled: @"callconfirm"]){
@@ -633,7 +628,7 @@ void callstart(id self, SEL _cmd, long arg1){
     
 }
 
-//_handleRequestAndInviteFeaturesAndSendSnap:sendToRecipients:showSendToLoadingOverlay:recipientUsernames:mischiefs:
+
 BOOL (*orig_cellswipe)(id self, SEL _cmd);
 BOOL cellswipe(id self, SEL _cmd){
     if([ShadowData enabled: @"cellswipe"]){
@@ -660,25 +655,6 @@ void deleted(id self, SEL _cmd, id arg1, id arg2, NSArray<SCNMessagingMessage*>*
 }
 
 
-@interface SCOperaActionMenuV2Option: NSObject
-{
-    _Bool _enabled;
-    long long _type;
-    NSString *_title;
-}
-@property(readonly, nonatomic) _Bool enabled;
-@property(readonly, copy, nonatomic) NSString *title;
-@property(readonly, nonatomic) long long type;
-- (id)description;
-- (id)initWithType:(long long)arg1 title:(id)arg2 enabled:(_Bool)arg3;
-- (id)initWithType:(long long)arg1 title:(id)arg2;
-@end
-
-@interface SCContextActionMenuAction: NSObject
--(id)initWithTitle:(NSString*)arg1 identifier:(NSString*)arg2 attributes:(NSString*)arg3 imageProvider:(id)arg4 handler:(id)arg5;
-@end
-
-
 void (*orig_menuoptions)(id self, SEL _cmd, NSArray *arg1);
 void menuoptions(id self, SEL _cmd, NSArray *arg1){
     //SCContextActionMenuOperaDataSource setActionMenuItems:
@@ -696,7 +672,6 @@ id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
     if([[ShadowOptionsManager sharedInstance] identifierExists: arg1.title]){
         NSString *title = [[ShadowOptionsManager sharedInstance] titleForIdentifier: arg1.title];
         id action = [[ShadowOptionsManager sharedInstance] blockForIdentifier: arg1.title];
-        NSLog(@"WE GOT IT: %@", arg1.title);
         SCContextActionMenuAction *newaction = [[%c(SCContextActionMenuAction) alloc] initWithTitle:title identifier:arg1.title attributes:nil imageProvider:nil handler:action];
         return newaction;
     }else{
@@ -705,47 +680,163 @@ id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
 }
 
 
+
+//SCBasicCaptureVideoStrategy _handleRecordingResultWithRecordedVideo:0x2873d97c0 error:0x0
+//SCManagedVideoCapturerImpl
+
+/*
+ 
+ [SCCaptureVideoStrategyData postCaptureDataWithVideo:0x2872ce180]
+   7062 ms     | -[SCCaptureVideoStrategyData internalInit]
+   7062 ms  -[SCCaptureVideoStrategyStateMachineInternalProxy videoReceived:0x287ba8690]
+   7062 ms     | -[SCCaptureVideoStrategyData matchPreCaptureData:0x0 postCaptureData:0x16bc1e718 failedCaptureData:0x0 cancelledCaptureData:0x0]
+   7062 ms     |    | +[SCCaptureVideoStrategyEvent didCaptureVideoWithConfiguration:0x2845ab800 currentCapturerState:0x2889dce10 video:0x2872ce180]
+   7062 ms     |    |    | -[SCCaptureVideoStrategyEvent internalInit]
+
+ */
+
+
+void (*orig_audiosave)(id self, SEL _cmd, NSData *audio, void* pbs, void *offset);
+void audiosave(id self, SEL _cmd, NSData *audio, void* pbs, void* offset){
+    orig_audiosave(self, _cmd, audio, pbs, offset);
+    if([ShadowData enabled:@"saveaudio"]){
+        NSString *mid = MSHookIvar<NSString*>(self, "_mediaId");
+        [ShadowData sharedInstance].audionotes[mid] = [NSData dataWithData:audio];
+    }
+}
+/*
+ 
+ BOOL isDir;
+ NSFileManager *fileManager= [NSFileManager defaultManager];
+ if(![fileManager fileExistsAtPath:[ShadowData fileWithName:@"audionotes"] isDirectory:&isDir])
+     [fileManager createDirectoryAtPath:[ShadowData fileWithName:@"audionotes"] withIntermediateDirectories:YES attributes:nil error:NULL];
+ NSString *mid = MSHookIvar<NSString*>(self, "_mediaId");
+ NSString *filename = [@"audionotes/" stringByAppendingString: [mid stringByAppendingString: @".aif"]];
+ NSString *file = [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject].path stringByAppendingPathComponent:filename];
+ [audio writeToFile:file atomically:YES];
+ */
+
+
+
+//
+long (*orig_wraithupload)(id self, SEL _cmd, id arg1, CGSize arg2, id arg3, id arg4);
+long wraithupload(id self, SEL _cmd, id arg1, CGSize arg2, id arg3, id arg4){
+    if(![ShadowData enabled:@"wraithuploads"]){
+        return orig_wraithupload(self, _cmd, arg1, arg2, arg3, arg4);
+    }
+    NSString *path = [ShadowData fileWithName: @"upload.mp4"];
+    NSURL *url = [NSURL fileURLWithPath: path];
+    UIImage *image = [UIImage new];
+    SCManagedRecordedVideo *capture = [[%c(SCManagedRecordedVideo) alloc] initWithVideoURL: url rawVideoDataFileURL: url videoDuration: 1 placeholderImage: image isFrontFacingCamera:1 codecType:1];
+    SCFuture *future = [[%c(SCFuture) alloc] _init];
+    [future _completeWithValue: capture];
+    return orig_wraithupload(self, _cmd, future, arg2, image, arg4);
+}
+/*
+%hook SCFocusedMessageView
+-(void)setViewModel:(id)arg1 contentView:(UIView*)arg2 parentView:(id)arg3{
+    if(arg2.class == %c(SCStackedChatTableViewCollectionView)){
+        id arg2.subviews[0];
+        NSLog(@"Found some shit");
+        //safe to not call orig
+    }else{
+        %orig;
+    }
+}
+%end
+ */
+//com.apple.private.security.no-container
+
+
+void (*orig_audiosave2)(id self, SEL _cmd, id arg1, BOOL arg2);
+void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
+    if([ShadowData enabled:@"saveaudio"]){
+        NSString *mid = MSHookIvar<NSString*>(self, "_mediaId");
+        if(NSData *audio = [ShadowData sharedInstance].audionotes[mid]){
+            NSString *filename = [@"audionotes/" stringByAppendingString: [mid stringByAppendingString: @".aif"]];
+            NSString *file = [ShadowData fileWithName: filename];
+            NSString *folder = [ShadowData fileWithName: @"audionotes/"];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Save Audio?" description:[@"Would you like to save this audio note? Will be saved as " stringByAppendingString: file]];
+                
+                SIGAlertDialogAction *no = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"No" actionBlock:^(){
+                    [alert dismissViewControllerAnimated:YES completion:nil];
+                }];
+                
+                SIGAlertDialogAction *yes= [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Yes" actionBlock:^(){
+                    BOOL isDir;
+                    if(![[NSFileManager defaultManager] fileExistsAtPath:folder isDirectory:&isDir])
+                        [[NSFileManager defaultManager] createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:NULL];
+                    [audio writeToFile:file atomically:YES];
+                    [ShadowData sharedInstance].audionotes[mid] = nil;
+                    [alert dismissViewControllerAnimated:YES completion:nil];
+                }];
+                
+                [alert _setActions: @[yes,no]];
+                
+                UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+                while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+                [topVC presentViewController: alert animated: true completion:nil];
+            });
+        }
+    }
+    orig_audiosave2(self, _cmd, arg1, arg2);
+}
+
+
 %ctor{
     [[XLLogerManager manager] prepare];
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        RelicHookMessageEx(%c(SIGHeaderTitle), @selector(_titleTapped:), (void *)tap, &orig_tap);
-        RelicHookMessageEx(%c(SCFriendsFeedCreateButton), @selector(resetCreateButton), (void *)hidebtn, &orig_hidebtn);
-        RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isSaved), (void *)savehax, &orig_savehax);
-        RelicHookMessageEx(%c(SIGHeader), @selector(_stylize:), (void *)markheader, &orig_markheader);
+        //URL opening
+        RelicHookMessageEx(%c(SCURLAttachmentHandler),@selector(openURL:baseView:), (void *)openurl, &orig_openurl);
+        RelicHookMessageEx(%c(SCContextV2BrowserPresenter),@selector(presentURL:preferExternal:metricParams:fromViewController:completion:), (void *)openurl2, &orig_openurl2);
+       
+        //Screenshot
+        RelicHookMessage(%c(SCChatMainViewController), @selector(screenshot), (void *)screenshotspam);
+        
+        //Ghost
+        RelicHookMessageEx(%c(SIGPullToRefreshView), @selector(setHeight:), (void *)updateghost, &orig_updateghost);
+        RelicHookMessageEx(%c(SCSingleStoryViewingSession), @selector(_markStoryAsViewedWithStorySnap:), (void *)storyghost, &orig_storyghost);
+        RelicHookMessageEx(%c(SCNMessagingSnapManager),@selector(onSnapInteraction:conversationId:messageId:callback:), (void *)snapghost, &orig_snapghost);
+        
+        //Spoofing + stuff
         RelicHookMessageEx(%c(SCFriendsFeedFriendmojiViewModel), @selector(initWithFriendmojiText:friendmojiTextSize:expiringStreakFriendmojiText:expiringStreakFriendmojiTextSize:), (void *)noemojis, &orig_noemojis);
         RelicHookMessageEx(%c(SCUnifiedProfileMyStoriesHeaderDataModel), @selector(totalViewCount), (void *)views, &orig_views);
         RelicHookMessageEx(%c(SCUnifiedProfileMyStoriesHeaderDataModel), @selector(totalScreenshotCount), (void *)screenshots, &orig_screenshots);
         RelicHookMessageEx(%c(SCUnifiedProfileSquadmojiView), @selector(setViewModel:), (void *)scramblefriends, &orig_scramblefriends);
-        RelicHookMessageEx(%c(SCSingleStoryViewingSession), @selector(_markStoryAsViewedWithStorySnap:), (void *)storyghost, &orig_storyghost);
-        RelicHookMessageEx(%c(SCNMessagingSnapManager),@selector(onSnapInteraction:conversationId:messageId:callback:), (void *)snapghost, &orig_snapghost);
-        RelicHookMessageEx(%c(SIGScrollViewKeyValueObserver),@selector(_contentOffsetDidChange), (void *)settingstext, &orig_settingstext);
-        RelicHookMessageEx(%c(SCURLAttachmentHandler),@selector(openURL:baseView:), (void *)openurl, &orig_openurl);
-        RelicHookMessageEx(%c(SCContextV2BrowserPresenter),@selector(presentURL:preferExternal:metricParams:fromViewController:completion:), (void *)openurl2, &orig_openurl2);
-        RelicHookMessage(%c(SCOperaPageViewController), @selector(saveSnap), (void *)save);
-        RelicHookMessageEx(%c(SCChatMainViewController), @selector(viewDidFullyAppear), (void *)loaded3, &orig_loaded3);
-        RelicHookMessage(%c(SCChatMainViewController), @selector(screenshot), (void *)screenshotspam);
-        RelicHookMessageEx(%c(SIGPullToRefreshView), @selector(setHeight:), (void *)updateghost, &orig_updateghost);
+        
+        //Audio note stuff
+        RelicHookMessageEx(%c(SCChatAudioNotePlayer), @selector(audioPlayerDidFinishPlaying:successfully:), (void*)audiosave2, &orig_audiosave2);
+        RelicHookMessageEx(%c(SCChatAudioNotePlayer), @selector(_playAudioNoteWithData:playbackSpeed:offsetInSeconds:), (void *)audiosave, &orig_audiosave);
+        
+        //Media hooks
         RelicHookMessage(%c(SCSwipeViewContainerViewController), @selector(upload), (void *)uploadhandler);
-        
-        RelicHookMessageEx(%c(SCArroyoConversationDataUpdateAnnouncer), @selector(onConversationUpdated:conversation:updatedMessages:removedMessages:), (void *)deleted, &orig_deleted);
-
-        RelicHookMessageEx(%c(SCContextActionMenuOperaDataSource), @selector(actionForOption:), (void *)menuactions, &orig_menuactions);
-        RelicHookMessageEx(%c(SCContextActionMenuOperaDataSource), @selector(setActionMenuItems:), (void *)menuoptions, &orig_menuoptions);
-        
+        RelicHookMessage(%c(SCOperaPageViewController), @selector(saveSnap), (void *)save);
         RelicHookMessage(%c(SCOperaViewController), @selector(markSeen), (void *)markSeen);
         RelicHookMessage(%c(SCOperaViewController), @selector(saveSnap), (void *)save);
+        RelicHookMessageEx(%c(SCFeatureCaptureComponentImpl), @selector(_capturerWillFinishRecordingWithRecordedVideoFuture:videoSize:placeholderImage:session:), (void *)wraithupload, &orig_wraithupload);
+        
+        //View loading
+        RelicHookMessageEx(%c(SCChatMainViewController), @selector(viewDidFullyAppear), (void *)loaded3, &orig_loaded3);
         RelicHookMessageEx(%c(SCOperaViewController), @selector(viewDidLoad), (void *)loaded4, &orig_loaded4);
-        
-        RelicHookMessageEx(%c(SCLocationManager), @selector(location), (void *)location, &orig_location);
-        RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);
-        RelicHookMessageEx(%c(SCPinnedConversationsDataCoordinator), @selector(hasPinnedConversationWithId:), (void *)pinned, &orig_pinned);
         RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(viewDidLoad), (void *)loaded, &orig_loaded);
-        RelicHookMessageEx(%c(SCChatViewHeader), @selector(attachCallButtonsPane), (void *)hidebuttons, &orig_hidebuttons);
+        RelicHookMessageEx(%c(SCOperaPageViewController), @selector(viewDidLoad), (void *)loaded2, &orig_loaded2);
         
+        //Features
+        RelicHookMessageEx(%c(SCLocationManager), @selector(location), (void *)location, &orig_location);
+        RelicHookMessageEx(%c(SCPinnedConversationsDataCoordinator), @selector(hasPinnedConversationWithId:), (void *)pinned, &orig_pinned);
         RelicHookMessageEx(%c(SCTalkChatSession), @selector(_composerCallButtonsOnStartCallMedia:), (void *)callstart, &orig_callstart);
         RelicHookMessageEx(%c(SCMapBitmojiLayerController), @selector(setSelectedUserId:animated:), (void *)teleport, &orig_teleport);
         
+        //UI
+        RelicHookMessageEx(%c(SIGHeader), @selector(_stylize:), (void *)markheader, &orig_markheader);
+        RelicHookMessageEx(%c(SIGHeaderTitle), @selector(_titleTapped:), (void *)tap, &orig_tap);
+        RelicHookMessageEx(%c(SCFriendsFeedCreateButton), @selector(resetCreateButton), (void *)hidebtn, &orig_hidebtn);
+        RelicHookMessageEx(%c(SCContextActionMenuOperaDataSource), @selector(actionForOption:), (void *)menuactions, &orig_menuactions);
+        RelicHookMessageEx(%c(SCContextActionMenuOperaDataSource), @selector(setActionMenuItems:), (void *)menuoptions, &orig_menuoptions);
+        RelicHookMessageEx(%c(SCChatViewHeader), @selector(attachCallButtonsPane), (void *)hidebuttons, &orig_hidebuttons);
         RelicHookMessageEx(%c(SCDiscoverFeedStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover, &orig_nodiscover);
         RelicHookMessageEx(%c(SCDiscoverFeedPublisherStoryCollectionViewCell), @selector(viewModel), (void *)nodiscover2, &orig_nodiscover2);
         RelicHookMessageEx(%c(SCSwipeViewContainerViewController), @selector(isFullyVisible:), (void *)nomapswipe, &orig_nomapswipe);
@@ -753,6 +844,7 @@ id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
         RelicHookMessageEx(%c(SCSnapchatterTableViewCell), @selector(layoutSubviews), (void *)noquickadd, &orig_noquickadd);
         RelicHookMessageEx(%c(SIGPanningGestureRecognizer), @selector(isEdgePan), (void *)cellswipe, &orig_cellswipe);
         
+        //Ads
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowShowsAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowEmbeddedWebViewAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowPublicStoriesAds), (void *)noads);
@@ -762,6 +854,11 @@ id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowStoryAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowUserStoriesAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowAds), (void *)noads);
+        
+        //Misc
+        RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isSaved), (void *)savehax, &orig_savehax);
+        RelicHookMessageEx(%c(SIGScrollViewKeyValueObserver),@selector(_contentOffsetDidChange), (void *)settingstext, &orig_settingstext);
+        RelicHookMessageEx(%c(SCArroyoConversationDataUpdateAnnouncer), @selector(onConversationUpdated:conversation:updatedMessages:removedMessages:), (void *)deleted, &orig_deleted);
     });
     NSLog(@"[Shadow X + Relic] Hooks Initialized and Tweak Loaded");
     [ShadowData sharedInstance];

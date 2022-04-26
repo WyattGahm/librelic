@@ -24,6 +24,8 @@
     ["shadow experiments", "theme", "Change Shadow Theming", "Pick a theme for shadow's buttons + settings",  "button", "SELECT"],
     ["shadow experiments", "resetlayout", "Reset Button Layout", "Restore button positions to defualt configuration",  "button", "RESTORE"],
     ["shadow experiments", "keepchat", "Ignore deleted chats", "Ignore some deleted chats (only works when in chat)",  "switch", "true"],
+    ["shadow experiments", "saveaudio", "Save Audio Notes", "Automatically save audio notes to the documents dir",  "switch", "true"],
+    ["shadow experiments", "wraithuploads", "Wraith Uploads", "Upload videos Wraith/Casper style",  "switch", "false"],
     
     ["spoof", "location", "Spoof Location", "Use the location selector below to change location.", "switch", "false"],
     ["spoof", "picklocation", "Pick Location", "Requires enabling \"Spoof Location\".", "button", "PICK"],

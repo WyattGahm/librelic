@@ -12,6 +12,8 @@ LIBRARY_NAME = librelic
 librelic_FRAMEWORKS = Foundation UIKit
 librelic_FILES = hashmap.mm relic.mm
 
+SUBPROJECTS += loader
+
 librelic_LIBRARIES = substrate
 
 include $(THEOS)/makefiles/common.mk

@@ -38,9 +38,6 @@
     return self;
 }
 
-- (void)setDefaultLog:(NSString *)defaultLog {
-    self.textView.text = defaultLog;
-}
 
 #pragma mark - init UI
 - (void)initViews {
