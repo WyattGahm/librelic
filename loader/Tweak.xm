@@ -63,8 +63,6 @@
 #import "XLLogerManager.h"
 #import "ShadowButton.h"
 
-#define AUDIONOTES_DIR @"/private/var/mobile/Documents/audionotes/"
-
 
 static void (*orig_tap)(id self, SEL _cmd, id arg1);
 static void tap(id self, SEL _cmd, id arg1){
