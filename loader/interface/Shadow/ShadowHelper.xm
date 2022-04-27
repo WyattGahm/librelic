@@ -139,5 +139,15 @@
     while (topVC.presentedViewController) topVC = topVC.presentedViewController;
     [topVC presentViewController: alert animated: true completion:nil];
 }
+
++(void)dialogWithTitle:(NSString*)title text:(NSString*)text{
+    UIViewController *alert = [%c(SIGAlertDialog) _alertWithTitle:title description:text];
+    UILabel *titleLabel = MSHookIvar<UILabel*>(alert,"_titleLabel");
+    RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)titleLabel];
+    [effect resume];
+    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+    [topVC presentViewController: alert animated: true completion:nil];
+}
 @end
 

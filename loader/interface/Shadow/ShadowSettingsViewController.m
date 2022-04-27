@@ -257,6 +257,7 @@
 }
 
 -(void)switchChanged:(ShadowSwitch*)sender {
+    NSLog(@"SENDER FOR SWI: %@",sender.setting);
     [ShadowData sharedInstance].settings[sender.setting] = sender.on ? @"true" : @"false";
     [[ShadowData sharedInstance] save];
 }

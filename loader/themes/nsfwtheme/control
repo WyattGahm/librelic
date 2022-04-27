@@ -1,0 +1,8 @@
+Package: com.no5up.nsfwtheme
+Name: nsfwtheme
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: 18+ theme for relicloader
+Maintainer: no5up
+Author: no5up
+Section: Themes

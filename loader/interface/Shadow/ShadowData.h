@@ -12,10 +12,11 @@
 #define THEME @"theme"
 #define LAYOUT @"layout"
 #define FIRST @"first"
-#define FILE @"shadowxrelic.plist"
+#define PREFFILE @"shadowxrelic.plist"
 
 @interface ShadowData:NSObject <NSCoding>
 @property NSArray<ShadowSetting *> *prefs;
+@property NSArray<ShadowSetting *> *overrides;
 @property NSMutableDictionary *settings;
 @property NSMutableDictionary *location;
 @property NSDictionary *server;

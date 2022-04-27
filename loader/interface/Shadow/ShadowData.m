@@ -5,10 +5,9 @@
 @implementation ShadowData
 
 -(instancetype)initsafe{
-    NSData *raw = [NSData dataWithContentsOfFile:[ShadowData fileWithName:FILE]];
+    NSData *raw = [NSData dataWithContentsOfFile:[ShadowData fileWithName:PREFFILE]];
     ShadowData *data = [NSKeyedUnarchiver unarchiveObjectWithData:raw];
     if(!data){
-        NSLog(@"WHY IS DATA  NOT WOKTING");
         data = [ShadowData new];
     }
     [data setup];
@@ -16,27 +15,44 @@
 }
 
 -(void)setup{
-    NSString *path;
+    NSString *settingspath;
+    NSString *overridespath;
+    
     if(!self.settings){
         self.settings = [NSMutableDictionary new];
+    }
+    if(!self.overrides){
+        self.overrides = [NSMutableDictionary new];
     }
     if(!self.positions.layout){
         self.positions.layout = [ShadowLayout defaultLayout];
     }
+    self.audionotes = [NSMutableDictionary new];
+    
     if(self.theme){
         NSLog(@"THEME: %@", self.theme);
-        path = [[[@"/Library/Application Support/shadowx/" stringByAppendingString:self.theme] stringByAppendingString:@"/"] stringByAppendingString:@"settings.json"];
-        if(![[NSFileManager defaultManager] fileExistsAtPath:path]){
-            NSLog(@"handled the error");
-            path = @"/Library/Application Support/shadowx/default/settings.json";
+        settingspath = [[[@"/Library/Application Support/shadowx/" stringByAppendingString:self.theme] stringByAppendingString:@"/"] stringByAppendingString:@"settings.json"];
+        if(![[NSFileManager defaultManager] fileExistsAtPath:settingspath]){
+            settingspath = @"/Library/Application Support/shadowx/default/settings.json";
+        }
+        
+        overridespath = [[[@"/Library/Application Support/shadowx/" stringByAppendingString:self.theme] stringByAppendingString:@"/"] stringByAppendingString:@"overrides.json"];
+        if(![[NSFileManager defaultManager] fileExistsAtPath:overridespath]){
+            overridespath = @"/Library/Application Support/shadowx/default/overrides.json";
         }
     }else{
-        path = @"/Library/Application Support/shadowx/default/settings.json";
+        overridespath = @"/Library/Application Support/shadowx/default/overrides.json";
+        settingspath = @"/Library/Application Support/shadowx/default/settings.json";
     }
-    self.audionotes = [NSMutableDictionary new];
-    NSData *jsonData = [NSData dataWithContentsOfFile:path];
-    NSArray *jsonArray = [NSJSONSerialization JSONObjectWithData: jsonData options: NSJSONReadingMutableContainers error: nil];
-    self.prefs = [ShadowSetting makeSettings:jsonArray];
+    
+    NSData *settingsData = [NSData dataWithContentsOfFile:settingspath];
+    NSArray *settingsJSON = [NSJSONSerialization JSONObjectWithData: settingsData options: NSJSONReadingMutableContainers error: nil];
+    self.prefs = [ShadowSetting makeSettings:settingsJSON];
+    
+    NSData *overridesData = [NSData dataWithContentsOfFile:overridespath];
+    NSArray *overridesJSON = [NSJSONSerialization JSONObjectWithData: overridesData options: NSJSONReadingMutableContainers error: nil];
+    self.overrides = [ShadowSetting makeSettings:overridesJSON];
+    
     [self syncSettings];
     self.seen = FALSE;
     self.server = [ShadowServerData dictionaryForURL:[NSURL URLWithString:SERVER]];
@@ -87,7 +103,7 @@
     for(ShadowSetting* setting in self.prefs){
         if(!self.settings[setting.key]){
             self.settings[setting.key] = setting.value;
-        }else if ([setting.type isEqual: @"switch"] || [setting.type isEqual: @"image"]){
+        }else if ([setting.type isEqual: @"button"] || [setting.type isEqual: @"image"]){
             self.settings[setting.key] = setting.value;
         }
     }
@@ -96,7 +112,7 @@
 //save
 -(void)save{
     [self syncSettings];
-    NSString *path = [ShadowData fileWithName:FILE];
+    NSString *path = [ShadowData fileWithName:PREFFILE];
     NSData *data = [NSKeyedArchiver archivedDataWithRootObject:self requiringSecureCoding:NO error:nil];//[NSKeyedArchiver archivedDataWithRootObject:self requiringSecureCoding:NO error:nil];
     [data writeToFile:path options:NSDataWritingAtomic error:nil];
 }
@@ -117,22 +133,41 @@
 
 //load
 -(id)load{
+    /*
     NSString *path = [ShadowData fileWithName:FILE];
     NSData *raw = [NSData dataWithContentsOfFile:path];
     [NSKeyedUnarchiver unarchivedObjectOfClass:[self class] fromData:raw error:nil];
     [self update:[NSKeyedUnarchiver unarchiveObjectWithData:raw]];
     return self;
+     */
 }
 
 +(BOOL)enabled:(NSString *) key{
-    if([ShadowData sharedInstance].settings[key]){
-        if([[ShadowData sharedInstance].settings[key] isEqual:@"true"]){
+    ShadowData *data = [ShadowData sharedInstance];
+    if(data.overrides){
+        for(ShadowSetting *setting in data.overrides){
+            if([setting.key isEqual: key]){
+                if([setting.value isEqual:@"true"]){
+                    return YES;
+                }
+                if([setting.value isEqual:@"false"]){
+                    return NO;
+                }
+                if(![setting.value isEqual:@""]){
+                    return YES;
+                }
+                return NO;
+            }
+        }
+    }
+    if(data.settings[key]){
+        if([data.settings[key] isEqual:@"true"]){
             return YES;
         }
-        if([[ShadowData sharedInstance].settings[key] isEqual:@"false"]){
+        if([data.settings[key] isEqual:@"false"]){
             return NO;
         }
-        if(![[ShadowData sharedInstance].settings[key] isEqual:@""]){
+        if(![data.settings[key] isEqual:@""]){
             return YES;
         }
     }
@@ -195,7 +230,6 @@
     [data save];
 }
 +(void)resetSettings{
-    //[[NSFileManager defaultManager] removeItemAtPath:[ShadowData fileWithName:FILE] error:nil];
     ShadowData *data = [ShadowData sharedInstance];
     data.first = @"true";
     data.settings = nil;
