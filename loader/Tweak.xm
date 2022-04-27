@@ -618,11 +618,9 @@ void callstart(id self, SEL _cmd, long arg1){
             [alert dismissViewControllerAnimated:YES completion:nil];
         }];
         [alert _setActions: @[back,call]];
-        NSLog(@"looks like we bugged going in");
         UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
         while (topVC.presentedViewController) topVC = topVC.presentedViewController;
         [topVC presentViewController: alert animated: true completion:nil];
-        NSLog(@"made it to the end so were prolly hanging then crashing");
     });
     
 }
