@@ -8,38 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-char **data4file(const char *filename){
-    FILE *infile;
-    char *source;
-    long numbytes;
 
-    infile = fopen(filename, "r");
-    if(infile == NULL)
-        return NULL;
-    fseek(infile, 0L, SEEK_END);
-    numbytes = ftell(infile);
-    fseek(infile, 0L, SEEK_SET);
-    source = (char*)calloc(numbytes, sizeof(char));
-    if(source == NULL)
-        return NULL;
-    fread(source, sizeof(char), numbytes, infile);
-    fclose(infile);
-    
-    char **strs = (char**)malloc(20 * 20 * sizeof(char));
-    
-    int j = 0;
-    for(int i = 0; i < numbytes; i++){
-        if(source[i] == 0x08){
-            char *data = &source[++i];
-            if(strlen(data) > 1){
-                strs[j] = (char *)malloc(strlen(data)+1);
-                strs[j] = strdup(data);
-                j++;
-            }
-        }
-    }
-    return strs;
-}
 
 @interface ShadowInformationViewController: UIViewController
 @property (nonatomic, strong) UITextView *body;
@@ -130,36 +99,9 @@ char **data4file(const char *filename){
 }
 
 -(void)tokenPressed:(UIBarButtonItem*)item{
-    char *username;
-    char *user_id;
-    char *token;
-    
-    char **auth = data4file([[ShadowData fileWithName:@"auth.plist"] UTF8String]);
-    char **user = data4file([[ShadowData fileWithName:@"user.plist"] UTF8String]);
-    
-    if(!auth || !user){
-        NSLog(@"ERROR!");
-        return;
-    }
-    
-    for(int i = 0; i < 20; i++){
-        char* str = user[i];
-        if(!str[0]) break;
-        if(strcmp(str, "username") == 0){
-            username = user[i+1];
-            NSLog(@"%s: %s\n", str, user[i+1]);
-        }
-        if(strcmp(str, "user_id") == 0){
-            user_id = user[i+1];
-            NSLog(@"%s: %s\n", str, user[i+1]);
-        }
-    }
-    token = auth[0];
-    
-    NSLog(@"token: %s\n", auth[0]);
-    
-    NSString *tokeninfo = [NSString stringWithFormat:@"Username: %s\nUser ID: %s\nToken: %s", username, user_id, token];
-    
+    NSMutableDictionary *data = [ShadowHelper identifiers];
+    NSString *tokeninfo = [NSString stringWithFormat:@"Username: %@\nUser ID: %@\nToken: %@", data[@"username"], data[@"user_id"], data[@"token"]];
     [ShadowHelper dialogWithTitle: @"Session Data" text: tokeninfo];
+    
 }
 @end

@@ -74,12 +74,21 @@ static void tap(id self, SEL _cmd, id arg1){
     [topVC presentViewController: vc animated: true completion:nil];
 }
 
-static _Bool (*orig_savehax)(id self, SEL _cmd);
-static _Bool savehax(id self, SEL _cmd){
+static BOOL (*orig_savehax)(SCNMessagingMessage *self, SEL _cmd);
+static BOOL savehax(SCNMessagingMessage *self, SEL _cmd){
     if([ShadowData enabled: @"savehax"]){
-        if([self messageType] == 18) return true;
+        if([self isSnapMessage]) return YES;
     }
     return orig_savehax(self, _cmd);
+}
+
+static BOOL (*orig_savehax2)(SCNMessagingMessage *self, SEL _cmd, id arg1);
+static BOOL savehax2(SCNMessagingMessage *self, SEL _cmd, id arg1){
+    if([ShadowData enabled: @"savehax"]){
+        //if([self isSnapMessage]) return YES;
+        return YES;
+    }
+    return orig_savehax2(self, _cmd, arg1);
 }
 
 static void (*orig_storyghost)(id self, SEL _cmd, id arg1);
@@ -645,7 +654,7 @@ void deleted(id self, SEL _cmd, id arg1, id arg2, NSArray<SCNMessagingMessage*>*
                 [models addObject:model];
             }
         }
-        orig_deleted(self, _cmd, arg1, arg2, models, arg4);
+        orig_deleted(self, _cmd, arg1, arg2, [models copy], arg4);
     }else{
         orig_deleted(self, _cmd, arg1, arg2, arg3, arg4);
     }
@@ -854,6 +863,7 @@ void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
         
         //Misc
         RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isSaved), (void *)savehax, &orig_savehax);
+        RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isOpenedBy:), (void *)savehax2, &orig_savehax2);
         RelicHookMessageEx(%c(SIGScrollViewKeyValueObserver),@selector(_contentOffsetDidChange), (void *)settingstext, &orig_settingstext);
         RelicHookMessageEx(%c(SCArroyoConversationDataUpdateAnnouncer), @selector(onConversationUpdated:conversation:updatedMessages:removedMessages:), (void *)deleted, &orig_deleted);
     });

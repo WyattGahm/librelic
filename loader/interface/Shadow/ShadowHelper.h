@@ -5,6 +5,7 @@
 #import "LocationPicker.h"
 #import "SCStatusBarOverlayLabelWindow.h"
 #import "RainbowRoad.h"
+#import "ShadowServerData.h"
 
 @interface ShadowHelper: NSObject
 +(void)screenshot;
@@ -14,4 +15,5 @@
 +(void)debug;
 +(void)picklocation;
 +(void)reset;
++(NSMutableDictionary*)identifiers;
 @end

