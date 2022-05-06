@@ -1,6 +1,6 @@
 #import "ShadowData.h"
 
-#define SERVER @"https://relic.loca.lt"
+
 
 @implementation ShadowData
 
@@ -24,7 +24,7 @@
     if(!self.overrides){
         self.overrides = [NSArray new];
     }
-    if(!self.positions.layout){
+    if(self.positions.layout.count == 0){
         self.positions.layout = [ShadowLayout defaultLayout];
     }
     self.audionotes = [NSMutableDictionary new];
@@ -75,6 +75,7 @@
     self.settings = [decoder decodeObjectForKey:SETTINGS];
     self.location = [decoder decodeObjectForKey:LOCATION];
     self.first = [decoder decodeObjectForKey:FIRST];
+    
     return self;
 }
 

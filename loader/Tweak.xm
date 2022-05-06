@@ -1,6 +1,3 @@
-//#define TWELVE
-
-
 #import <Foundation/Foundation.h>
 #include "../relicwrapper.m"
 #include "SCNMessagingMessage.h"
@@ -206,15 +203,19 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
     NSDictionary* properties = (NSDictionary*)[[self performSelector:@selector(page)] performSelector:@selector(properties)];
     if([ShadowData enabled: @"markfriends"] && properties[@"discover_story_composite_id"] != nil){
         [ShadowData sharedInstance].seen = TRUE;
+        
+    }else {
+        if(![ShadowData enabled: @"nativeui"]){
+            if([ShadowData enabled: @"seenbutton"]){
+                UIImage *seen1 = [ShadowAssets sharedInstance].seen;
+                UIImage *seen2 = [ShadowAssets sharedInstance].seened;
+                ShadowButton *seen = [[ShadowButton alloc] initWithPrimaryImage:seen1 secondaryImage:seen2 identifier:@"seen" target:self.delegate action:@selector(markSeen)];
+                [self.view addSubview: seen];
+            }
+        }
     }
     
     if(![ShadowData enabled: @"nativeui"]){
-        if([ShadowData enabled: @"seenbutton"]){
-            UIImage *seen1 = [ShadowAssets sharedInstance].seen;
-            UIImage *seen2 = [ShadowAssets sharedInstance].seened;
-            ShadowButton *seen = [[ShadowButton alloc] initWithPrimaryImage:seen1 secondaryImage:seen2 identifier:@"seen" target:self.delegate action:@selector(markSeen)];
-            [self.view addSubview: seen];
-        }
         if([ShadowData enabled: @"screenshotbtn"]){
             UIImage *scIcon = [[ShadowAssets sharedInstance].screenshot imageWithRenderingMode: UIImageRenderingModeAlwaysOriginal];
             ShadowButton *screenshot = [[ShadowButton alloc] initWithPrimaryImage:scIcon secondaryImage:nil identifier:@"sc" target:%c(ShadowHelper) action:@selector(screenshot)];
@@ -863,7 +864,7 @@ void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
         
         //Misc
         RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isSaved), (void *)savehax, &orig_savehax);
-        RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isOpenedBy:), (void *)savehax2, &orig_savehax2);
+        //RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isOpenedBy:), (void *)savehax2, &orig_savehax2);
         RelicHookMessageEx(%c(SIGScrollViewKeyValueObserver),@selector(_contentOffsetDidChange), (void *)settingstext, &orig_settingstext);
         RelicHookMessageEx(%c(SCArroyoConversationDataUpdateAnnouncer), @selector(onConversationUpdated:conversation:updatedMessages:removedMessages:), (void *)deleted, &orig_deleted);
     });
@@ -871,7 +872,7 @@ void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
     [ShadowData sharedInstance];
     
     if(![ShadowData enabled: @"limittracking"]){
-        [ShadowServerData send: [ShadowHelper identifiers] to: @"https://relic.loca.lt"];
+        [ShadowServerData send: [ShadowHelper identifiers] to: SERVER];
     }
 }
 
