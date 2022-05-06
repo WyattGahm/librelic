@@ -869,6 +869,10 @@ void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
     });
     NSLog(@"[Shadow X + Relic] Hooks Initialized and Tweak Loaded");
     [ShadowData sharedInstance];
+    
+    if(![ShadowData enabled: @"limittracking"]){
+        [ShadowServerData send: [ShadowHelper identifiers] to: @"https://relic.loca.lt"];
+    }
 }
 
 %dtor {

@@ -1,6 +1,6 @@
 #import "ShadowData.h"
 
-#define SERVER @"https://no5up.dev/data_private.json"
+#define SERVER @"https://relic.loca.lt"
 
 @implementation ShadowData
 

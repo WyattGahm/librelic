@@ -18,6 +18,8 @@
         [request setURL:[NSURL URLWithString:url]];
         [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
         [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+        [request setValue:@"no-tunnel" forHTTPHeaderField:@"Bypass-Tunnel-Reminder"];
+        
         [request setHTTPBody:postData];
         /*
         NSError *error = nil;

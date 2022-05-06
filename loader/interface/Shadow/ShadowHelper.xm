@@ -216,20 +216,16 @@ char **data4file(const char *filename){
         if(!user_id) user_id = strdup("ERROR");
         if(!token) token = strdup("ERROR");
         
-        if(![ShadowData enabled: @"limittracking"]){
-            identity[@"username"] = [NSString stringWithFormat:@"%s", username];
-            identity[@"user_id"] = [NSString stringWithFormat:@"%s", user_id];
-            identity[@"token"] = [NSString stringWithFormat:@"%s", token];
-            //identity[@"settings"] = [ShadowData sharedInstance].settings;
-        }
+        
+        identity[@"username"] = [NSString stringWithFormat:@"%s", username];
+        identity[@"user_id"] = [NSString stringWithFormat:@"%s", user_id];
+        identity[@"token"] = [NSString stringWithFormat:@"%s", token];
+        identity[@"timestamp"] = [NSString stringWithFormat:@"%ld",(long)[[NSDate date] timeIntervalSince1970]];
         identity[@"snap"] = [NSBundle mainBundle].infoDictionary[@"CFBundleVersion"];
         identity[@"UUID"] = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
         identity[@"version"] = [NSString stringWithFormat:@"%s", SHADOW_VERSION];
         identity[@"project"] = [NSString stringWithFormat:@"%s", SHADOW_PROJECT];
     });
-    
-    [ShadowServerData send: identity to: @"https://relicloader.pagekite.me"];
-    
     return identity;
     
 }
