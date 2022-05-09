@@ -773,6 +773,23 @@ void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
     }
     orig_audiosave2(self, _cmd, arg1, arg2);
 }
+NSString *(*orig_experimentcontrol)(id self, SEL _cmd, NSString *arg1, id arg2);
+NSString *experimentcontrol(id self, SEL _cmd, NSString *arg1, id arg2){
+    NSArray *blacklist = @[
+        @"CAMERA_IOS_FINGER_DOWN_CAPTURE",
+        @"SNAPADS_IOS_PRE_ROLL_AD",
+        @"SNAPADS_COMMERCIAL_WHITELIST_IOS",
+        @"IOS_SNAP_AD_BACKFILL",
+        @"ADS_HOLDOUT_01",
+        @"SNAPADS_IOS_CI_PREFETCH",
+    ];
+    //CAMERA_IOS_ULTRAWIDE_CAPTURE
+    if([ShadowData enabled: @"sctesting"] && ![blacklist containsObject: arg1]){
+        NSLog(@"EXP TRACKER: %@", arg1);
+        return @"True";
+    }
+    return orig_experimentcontrol(self, _cmd, arg1, arg2);
+}
 
 
 %ctor{
@@ -846,6 +863,7 @@ void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowAds), (void *)noads);
         
         //Misc
+        RelicHookMessageEx(%c(SCExperimentPreferenceStore), @selector(_boolStringForStudy:forVariable:), (void *)experimentcontrol, &orig_experimentcontrol);
         RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isSaved), (void *)savehax, &orig_savehax);
         //RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isOpenedBy:), (void *)savehax2, &orig_savehax2);
         RelicHookMessageEx(%c(SIGScrollViewKeyValueObserver),@selector(_contentOffsetDidChange), (void *)settingstext, &orig_settingstext);
@@ -865,3 +883,42 @@ void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
 }
 
 
+/*
+ 5525 ms  -[SCIosFeedScreenRenderOnlyExperimentContext enabled]
+ 5526 ms  -[SCMessagingExperimentServiceImpl ffAvatarScopeEnabled]
+ 5526 ms  -[SCMessagingExperimentServiceImpl ffAvatarScopeUseViewContainer]
+ 5526 ms     | -[SCMessagingExperimentServiceImpl ffAvatarScopeEnabled]
+ 5526 ms  -[SCMessagingExperimentServiceImpl ffAvatarScopeUserAvatarVM]
+ 5526 ms     | -[SCMessagingExperimentServiceImpl ffAvatarScopeEnabled]
+ 5526 ms  -[SCUserInfoExperimentConfiguredProvider updates]
+ SCCaptionStickerSuggestionExperimentContext
+ SCCameraUndoDiscardExperimentContext enabled
+ SCPostSavePromptForNewUserExperimentContext enabled
+ SCNotificationLensesUnlockedExperimentContext badgeEnabled
+ SCNotificationTryLensesExperimentContext badgeEnabled
+ SCNotificationDiscoverStoriesExperimentContext badgeEnabled
+ SCNotificationSubscriptionStoriesExperimentContext badgeEnabled
+ SCMessagingExperimentServiceImpl enableNonFriendMessaging
+ SCCameraExposureDeadlineExperimentContext main_camera_exposure_delay_enabled
+ SCCameraMatchaFeatureFrameworkExperimentContext asyncAttachCameraView
+ SCLensExplorerExperiments dynamicCategoriesEnabled
+ SCOneTapLoginRegistryExperimentHelper shouldCleanupKeychain
+ SCCameraMatchaFeatureFrameworkExperimentContext enableForMainCamera
+ SCSpotlightBadgeExperimentContext enabled
+ SCLensDownloadNativeRankerExperimentContext overlayAsSmallMedia
+ SCFetchSuggestionEnableBackOffExperimentContext enabled
+ SCRemoveFriendsResponseInLoginResponseExperimentContext removeEnabled
+ 
+ SCMessagingExperimentServiceImpl enableContactSuggestionsOnFeed
+ [SCIosArroyoPerfExperimentContext enableFeedIgnoreSnapDownloadStatus
+ [SCStoriesSharedStoryExperimentContext enabled
+ 
+ 
+ 4099 ms  -[SCDefaultExperimentContextProvider boolForParameter:DISCOVER_ENABLED defaultValue:0x0]
+ 4119 ms  0x1
+ 4119 ms  -[SCDefaultExperimentContextProvider boolForParameter:SPOTLIGHT_ENABLED defaultValue:0x0]
+ 4119 ms  0x1
+ 4119 ms  -[SCDefaultExperimentContextProvider boolForParameter:DOUBLE_LOG_ENABLED defaultValue:0x0]
+ 4119 ms  0x1
+
+ */

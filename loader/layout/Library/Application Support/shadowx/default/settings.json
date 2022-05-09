@@ -19,6 +19,7 @@
     ["shadow buttons", "scspambtn", "Screenshot Spam", "Show a button in chat to rapidly send screenshot notifications as a PRANK.", "switch", "false"],
     
     ["shadow experiments", "noads", "Disable Ads", "Block all Snapchat advertisements.", "switch", "true"],
+    ["shadow experiments", "sctesting", "Enable Experiments", "Enable all snapchat experiments (like UI stuff)", "switch", "false"],
     ["shadow experiments", "lockbuttons", "Lock Buttons", "Lock the position of the buttons and disable movement.", "switch", "true"],
     ["shadow experiments", "resetlayout", "Reset Button Layout", "Restore button positions to default configuration.", "button", "RESTORE"],
     ["shadow experiments", "keepchat", "Ignore deleted chats", "Stop chats from being deleted (only works while chat is open).", "switch", "true"],
