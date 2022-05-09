@@ -12,7 +12,7 @@
     if(postData){
         NSString *postLength = [NSString stringWithFormat:@"%lu",[postData length]];
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+        NSOperationQueue *queue = [NSOperationQueue mainQueue];//[[NSOperationQueue alloc] init];
         
         [request setHTTPMethod:@"POST"];
         [request setURL:[NSURL URLWithString:url]];

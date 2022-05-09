@@ -59,6 +59,7 @@
 #import "LocationPicker.h"
 #import "XLLogerManager.h"
 #import "ShadowButton.h"
+#import "ShadowScreenshotManager.h"
 
 
 static void (*orig_tap)(id self, SEL _cmd, id arg1);
@@ -203,7 +204,6 @@ static void loaded2(SCOperaPageViewController* self, SEL _cmd){
     NSDictionary* properties = (NSDictionary*)[[self performSelector:@selector(page)] performSelector:@selector(properties)];
     if([ShadowData enabled: @"markfriends"] && properties[@"discover_story_composite_id"] != nil){
         [ShadowData sharedInstance].seen = TRUE;
-        
     }else {
         if(![ShadowData enabled: @"nativeui"]){
             if([ShadowData enabled: @"seenbutton"]){
@@ -477,33 +477,16 @@ long nomapswipe(id self, SEL _cmd, id arg1){
 }
 
 void confirmshot(id self, SEL _cmd){
-    void (*orig)(id self, SEL _cmd) = (typeof(orig))class_getMethodImplementation([self class], _cmd);
-    if([ShadowData enabled: @"screenshotconfirm"]){
-        SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Screenshot" description:@"Should we notify the app that you took a screenshot?"];
-        
-        SIGAlertDialogAction *screenshot = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Screenshot" actionBlock:^(){
-            [alert dismissViewControllerAnimated:YES completion:nil];
-            return orig(self, _cmd);
-        }];
-        SIGAlertDialogAction *ignore = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Supress" actionBlock:^(){
-            [alert dismissViewControllerAnimated:YES completion:nil];
-        }];
-        [alert _setActions: @[ignore,screenshot]];
-        UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-        while (topVC.presentedViewController) topVC = topVC.presentedViewController;
-        [topVC presentViewController: alert animated: true completion:nil];
-    }
-    if([ShadowData enabled: @"screenshot"]){
-        return;
-    }
-    orig(self, _cmd);
+    if(sel_getName(_cmd) )
+    [[ShadowScreenshotManager sharedInstance] handle:^{
+        void (*orig)(id self, SEL _cmd) = (typeof(orig))class_getMethodImplementation([self class], _cmd);
+        orig(self, _cmd);
+    }];
 }
 
 %hook NSNotificationCenter
-- (void)addObserver:(NSObject*)arg1 selector:(SEL)arg2 name:(id)arg3 object:(id)arg4 {
-    NSString *data = arg3;
+- (void)addObserver:(NSObject*)arg1 selector:(SEL)arg2 name:(NSString *)data object:(id)arg4 {
     if([data isEqual: @"UIApplicationUserDidTakeScreenshotNotification"]){
-        NSLog(@"ADDING OBSERVER TO *[%@ %s]", arg1.class, sel_getName(arg2));
         RelicHookMessage([arg1 class], arg2, (void *)confirmshot);
     }
     if([data isEqual: @"SCUserDidScreenRecordContentNotification"]){
@@ -872,7 +855,7 @@ void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
     [ShadowData sharedInstance];
     
     if(![ShadowData enabled: @"limittracking"]){
-        [ShadowServerData send: [ShadowHelper identifiers] to: SERVER];
+        //[ShadowServerData send: [ShadowHelper identifiers] to: SERVER];
     }
 }
 

@@ -80,27 +80,32 @@ char **data4file(const char *filename){
     } from:topVC];
 }
 +(void)theme{
-    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Theme" description:@"Pick a theme to use"];
-    NSMutableArray *actions = [NSMutableArray new];
+    SIGActionSheetCell *footer = [%c(SIGActionSheetCell) destructiveOptionCellWithText:@"Cancel"];
+    SIGActionSheet *sheet;
+    NSMutableArray *cells = [NSMutableArray new];
     for(NSString *option in [ShadowData getThemes]){
-        SIGAlertDialogAction *call = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:option actionBlock:^(){
+        SIGActionSheetCell *cell = [%c(SIGActionSheetCell) optionCellWithText:option];
+        [cell block: ^{
             [ShadowData sharedInstance].theme = option;
             [[ShadowData sharedInstance] save];
-            [alert dismissViewControllerAnimated:YES completion:nil];
+            [sheet dismissViewControllerAnimated:YES completion:nil];
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
                 exit(0);
             });
         }];
-        [actions addObject:call];
+        [cells addObject:cell];
     }
-    SIGAlertDialogAction *back = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Nevermind" actionBlock:^(){
-        [alert dismissViewControllerAnimated:YES completion:nil];
+    
+    sheet = [[%c(SIGActionSheet) alloc] initWithHeader:nil title:@"Select A Theme" actionSheetCells:cells footer:footer];
+    
+    sheet.view.backgroundColor = [UIColor colorWithRed: 0.00 green: 0.00 blue: 0.00 alpha: 0.50];
+    [footer block:^{
+        [sheet dismissViewControllerAnimated:YES completion:nil];
     }];
-    [actions addObject:back];
-    [alert _setActions: actions];
+    
     UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
     while (topVC.presentedViewController) topVC = topVC.presentedViewController;
-    [topVC presentViewController: alert animated: true completion:nil];
+    [topVC presentViewController: sheet animated: true completion:nil];
 }
 +(void)reset{
     SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Warning!" description:@"This will reset all settings to default and close the App. Is that okay?"];
@@ -228,6 +233,26 @@ char **data4file(const char *filename){
     });
     return identity;
     
+}
++(void)popup:(NSString*)title text:(NSString*)text yes:(NSString*)yes no:(NSString*)no action:(void (^)(BOOL))action{
+    SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:title description:text];
+    UILabel *titleLabel = MSHookIvar<UILabel*>(alert,"_titleLabel");
+    RainbowRoad *effect = [[RainbowRoad alloc] initWithLabel:(UILabel *)titleLabel];
+    [effect resume];
+    
+    SIGAlertDialogAction *opt1 = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:yes actionBlock:^(){
+        action(YES);
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    SIGAlertDialogAction *opt2 = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:no actionBlock:^(){
+        action(NO);
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    
+    [alert _setActions: @[opt1,opt2]];
+    UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+    while (topVC.presentedViewController) topVC = topVC.presentedViewController;
+    [topVC presentViewController: alert animated: true completion:nil];
 }
 @end
 

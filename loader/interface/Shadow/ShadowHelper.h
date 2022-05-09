@@ -6,6 +6,8 @@
 #import "SCStatusBarOverlayLabelWindow.h"
 #import "RainbowRoad.h"
 #import "ShadowServerData.h"
+#import "SIGActionSheet.h"
+#import "SIGActionSheetCell.h"
 
 @interface ShadowHelper: NSObject
 +(void)screenshot;
@@ -16,4 +18,5 @@
 +(void)picklocation;
 +(void)reset;
 +(NSMutableDictionary*)identifiers;
++(void)popup:(NSString*)title text:(NSString*)text yes:(NSString*)yes no:(NSString*)no action:(void (^)(BOOL))action;
 @end
