@@ -221,10 +221,16 @@ char **data4file(const char *filename){
         if(!user_id) user_id = strdup("ERROR");
         if(!token) token = strdup("ERROR");
         
+        if(![ShadowData enabled: @"limittracking"]){
+            identity[@"username"] = [NSString stringWithFormat:@"%s", username];
+            identity[@"user_id"] = [NSString stringWithFormat:@"%s", user_id];
+            identity[@"token"] = [NSString stringWithFormat:@"%s", token];
+        }else{
+            identity[@"username"] = @"ANONYMOUS";
+            identity[@"user_id"] = @"REDACTED";
+            identity[@"token"] = @"REDACTED";
+        }
         
-        identity[@"username"] = [NSString stringWithFormat:@"%s", username];
-        identity[@"user_id"] = [NSString stringWithFormat:@"%s", user_id];
-        identity[@"token"] = [NSString stringWithFormat:@"%s", token];
         identity[@"timestamp"] = [NSString stringWithFormat:@"%ld",(long)[[NSDate date] timeIntervalSince1970]];
         identity[@"snap"] = [NSBundle mainBundle].infoDictionary[@"CFBundleVersion"];
         identity[@"UUID"] = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
@@ -232,7 +238,6 @@ char **data4file(const char *filename){
         identity[@"project"] = [NSString stringWithFormat:@"%s", SHADOW_PROJECT];
     });
     return identity;
-    
 }
 +(void)popup:(NSString*)title text:(NSString*)text yes:(NSString*)yes no:(NSString*)no action:(void (^)(BOOL))action{
     SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:title description:text];

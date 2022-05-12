@@ -18,9 +18,10 @@
         [request setURL:[NSURL URLWithString:url]];
         [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
         [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-        [request setValue:@"no-tunnel" forHTTPHeaderField:@"Bypass-Tunnel-Reminder"];
+        //[request setValue:@"no-tunnel" forHTTPHeaderField:@"Bypass-Tunnel-Reminder"];
         
         [request setHTTPBody:postData];
+        
         /*
         NSError *error = nil;
         NSHTTPURLResponse *responseCode = nil;
@@ -33,6 +34,8 @@
         [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
           if (error) {
               NSLog(@"There was an error sending data to the server");
+          }else{
+              NSLog(@"%@", [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding]);
           }
         }];
         

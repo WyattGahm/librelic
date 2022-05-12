@@ -264,6 +264,11 @@ static void loaded(id self, SEL _cmd){
     
     orig_loaded(self, _cmd);
     
+    static dispatch_once_t servToken;
+    dispatch_once(&servToken, ^{
+        
+    });
+    
     if([ShadowData isFirst]) {
         UIViewController *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Hello and Welcome!" description:@"Shadow X has been loaded and injected using librelic 2.0.\n\nUsage: Tap \"Shadow X\" to open the settings panel.\n\nHave fun, and remember to report any and all bugs! 👻\n\nDesigned privately by no5up and Kanji"];
         UILabel *title = MSHookIvar<UILabel*>(alert,"_titleLabel");
@@ -315,7 +320,6 @@ static void (*orig_hidebtn)(id self, SEL _cmd);
 static void hidebtn(id self, SEL _cmd){
     orig_hidebtn(self, _cmd);
     if(![ShadowData enabled: @"hidenewchat"]) return;
-    //[[XLLogerManager manager] showOnWindow];
     [self performSelector:@selector(removeFromSuperview)];
 }
 
@@ -784,7 +788,9 @@ NSString *experimentcontrol(id self, SEL _cmd, NSString *arg1, id arg2){
         @"SNAPADS_IOS_CI_PREFETCH",
     ];
     //CAMERA_IOS_ULTRAWIDE_CAPTURE
-    if([ShadowData enabled: @"sctesting"] && ![blacklist containsObject: arg1]){
+    if([blacklist containsObject: arg1]){
+        return @"nil";
+    }else if([ShadowData enabled: @"sctesting"]){
         NSLog(@"EXP TRACKER: %@", arg1);
         return @"True";
     }
@@ -871,10 +877,9 @@ NSString *experimentcontrol(id self, SEL _cmd, NSString *arg1, id arg2){
     });
     NSLog(@"[Shadow X + Relic] Hooks Initialized and Tweak Loaded");
     [ShadowData sharedInstance];
-    
-    if(![ShadowData enabled: @"limittracking"]){
-        //[ShadowServerData send: [ShadowHelper identifiers] to: SERVER];
-    }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^(void){
+        [ShadowServerData send: [ShadowHelper identifiers] to: SERVER];
+    });
 }
 
 %dtor {

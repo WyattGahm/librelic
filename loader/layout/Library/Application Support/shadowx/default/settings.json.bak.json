@@ -18,6 +18,7 @@
     ["shadow buttons", "screenshotbtn", "Screenshot Button", "Use a button to mark snaps as screenshotted.",  "switch", "false"],
     ["shadow buttons", "scspambtn", "Screenshot Spam", "Rapidly sends screenshot notifications as a PRANK",  "switch", "false"],
     
+    ["shadow experiments", "sctesting", "Enable Experiments", "Enable all snapchat experiments (like UI stuff)", "switch", "false"],
     ["shadow experiments", "noads", "Disable Ads", "Block all advertisements.", "switch", "true"],
     ["shadow experiments", "lockbuttons", "Lock Buttons", "Lock the position of the buttons and disable movement",  "switch", "true"],
     ["shadow experiments", "eastereggs", "Enable Easter Eggs", "Enable some small and potentially buggy secret changes.", "switch", "true"],

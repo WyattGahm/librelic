@@ -30,7 +30,6 @@
     self.audionotes = [NSMutableDictionary new];
     
     if(self.theme){
-        NSLog(@"THEME: %@", self.theme);
         settingspath = [[[@"/Library/Application Support/shadowx/" stringByAppendingString:self.theme] stringByAppendingString:@"/"] stringByAppendingString:@"settings.json"];
         if(![[NSFileManager defaultManager] fileExistsAtPath:settingspath]){
             settingspath = @"/Library/Application Support/shadowx/default/settings.json";
