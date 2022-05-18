@@ -25,6 +25,7 @@
     ["shadow experiments", "keepchat", "Ignore deleted chats", "Stop chats from being deleted (only works while chat is open).", "switch", "true"],
     ["shadow experiments", "saveaudio", "Save Voice Messages", "Show a confirmation dialog to save a voice-message to a folder (must listen to the whole voice-message first).", "switch", "true"],
     ["shadow experiments", "wraithuploads", "Long Uploads", "Upload videos longer than 10sec as one snap (Must take a quick video snap after choosing a video).", "switch", "false"],
+    ["shadow experiments", "nomoji", "No Bitmojis", "Do not render bitmojis",  "switch", "false"],
     
     ["spoof", "location", "Spoof Location", "Use the location selector below to change location.", "switch", "false"],
     ["spoof", "picklocation", "Pick Location", "Choose the location from the map (Requires enabling \"Spoof Location\").", "button", "PICK"],

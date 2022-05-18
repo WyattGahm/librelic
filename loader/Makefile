@@ -13,5 +13,4 @@ relicloader_CFLAGS += -DSHADOW_VERSION='"3.2.7"'
 relicloader_CFLAGS += -DSHADOW_PROJECT='"relicloader"'
 relicloader_CFLAGS += -DSERVER='@"http://144.172.67.132:42069"'
 relicloader_EXTRA_FRAMEWORKS := CoreGraphics AssetsLibrary UIKit AVKit CoreFoundation QuartzCore MobileCoreServices AVFoundation CoreLocation MapKit
-relicloader_CODESIGN_FLAGS=-Sentitlements.xml
 include $(THEOS_MAKE_PATH)/tweak.mk

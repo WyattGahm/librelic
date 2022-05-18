@@ -15,6 +15,7 @@
 @property UIImage *pull_shocked;
 @property UIImage *pull_hands;
 @property UIImage *seened;
+@property UIImage *toolbar;
 @property NSString *settings;
 + (instancetype)sharedInstance;
 @end

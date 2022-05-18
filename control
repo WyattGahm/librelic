@@ -1,9 +1,9 @@
 Package: com.wyattgahm.librelic
 Name: librelic
 Depends: mobilesubstrate (>= 0.9.5.000)
-Version: 2.1.0
+Version: 2.1.1
 Architecture: iphoneos-arm
 Description: library for Snapchat hooking
-Maintainer: Wyatt Gahm + Kanji
-Author: Wyatt Gahm + Kanji
+Maintainer: no5up + Kanji
+Author: no5up + Kanji
 Section: Development

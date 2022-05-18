@@ -13,6 +13,7 @@
     self.seened = [UIImage imageWithContentsOfFile:[theme stringByAppendingString:@"seened.png"]];
     self.saved = [UIImage imageWithContentsOfFile:[theme stringByAppendingString:@"saved.png"]];
     self.screenshot = [UIImage imageWithContentsOfFile:[theme stringByAppendingString:@"screenshot.png"]];
+    self.toolbar = [UIImage imageWithContentsOfFile:[theme stringByAppendingString:@"toolbar.png"]];
     
     self.pull_normal = [UIImage imageWithContentsOfFile:[theme stringByAppendingString:@"pull.normal.png"]];
     self.pull_wink = [UIImage imageWithContentsOfFile:[theme stringByAppendingString:@"pull.wink.png"]];

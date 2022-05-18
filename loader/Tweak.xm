@@ -47,6 +47,8 @@
 #import "SCMapBitmojiCluster.h"
 #import "SCManagedRecordedVideo.h"
 #import "SCFuture.h"
+#import "SCChatActionMenuButtonViewModel.h"
+#import "SCGrowingButton.h"
 
 #import "util.h"
 #import "ShadowData.h"
@@ -296,7 +298,7 @@ static void loaded(id self, SEL _cmd){
     }
 }
 
-//new, so no orig
+
 static void uploadhandler(id self, SEL _cmd){
     SCMainCameraViewController *cam = [((UIViewController*)self).childViewControllers firstObject];
     ShadowImportUtil* util = [ShadowImportUtil new];
@@ -316,14 +318,13 @@ static void uploadhandler(id self, SEL _cmd){
         
     }];
 }
+
 static void (*orig_hidebtn)(id self, SEL _cmd);
 static void hidebtn(id self, SEL _cmd){
     orig_hidebtn(self, _cmd);
     if(![ShadowData enabled: @"hidenewchat"]) return;
     [self performSelector:@selector(removeFromSuperview)];
 }
-
-
 
 static void (*orig_hidebuttons)(id self, SEL _cmd, id arg1);
 static void hidebuttons(id self, SEL _cmd, id arg1){
@@ -332,10 +333,6 @@ static void hidebuttons(id self, SEL _cmd, id arg1){
     [((UIView*)arg1) setHidden:YES];
 }
 
-//remove emojis
-//SCFriendsFeedFriendmojiViewModel,initWithFriendmojiText:friendmojiTextSize:expiringStreakFriendmojiText:expiringStreakFriendmojiTextSize:
-
-//- (id)initWithFriendmojiText:(NSAttributedString *)arg1 friendmojiTextSize:(struct CGSize)arg2 expiringStreakFriendmojiText:(id)arg3 expiringStreakFriendmojiTextSize:(struct CGSize)arg4{
 static id (*orig_noemojis)(id self,SEL _cmd,NSAttributedString *arg1, struct CGSize arg2, id arg3, struct CGSize arg4);
 static id noemojis(id self,SEL _cmd,NSAttributedString *arg1, struct CGSize arg2, id arg3, struct CGSize arg4){
     orig_noemojis(self, _cmd, arg1, arg2, arg3, arg4);
@@ -346,8 +343,6 @@ static id noemojis(id self,SEL _cmd,NSAttributedString *arg1, struct CGSize arg2
     return orig_noemojis(self, _cmd, [[NSAttributedString new] initWithString:@""], arg2, arg3, arg4);
 }
 
-//scramble friends
-//SCUnifiedProfileSquadmojiView setViewModel:
 static void (*orig_scramblefriends)(id self, SEL _cmd, NSArray *arg1);
 static void scramblefriends(id self, SEL _cmd, NSArray *arg1){
     if(![ShadowData enabled: @"scramble"]){
@@ -365,8 +360,6 @@ static void scramblefriends(id self, SEL _cmd, NSArray *arg1){
     orig_scramblefriends(self, _cmd, [viewModel copy]);
 }
 
-//Views Spoofing
-//SCUnifiedProfileMyStoriesHeaderDataModel totalViewCount ->unsigned long long
 static unsigned long long (*orig_views)(id self, SEL _cmd);
 static unsigned long long views(id self, SEL _cmd){
     if(![ShadowData enabled: @"spoofviews"])
@@ -374,7 +367,6 @@ static unsigned long long views(id self, SEL _cmd){
     return [[ShadowData sharedInstance].settings[@"spoofviews"] intValue];
 }
 
-//SCUnifiedProfileMyStoriesHeaderDataModel totalScreenshotCount ->unsigned long long
 
 static unsigned long long (*orig_screenshots)(id self, SEL _cmd);
 static unsigned long long screenshots(id self, SEL _cmd){
@@ -651,7 +643,6 @@ void deleted(id self, SEL _cmd, id arg1, id arg2, NSArray<SCNMessagingMessage*>*
 
 void (*orig_menuoptions)(id self, SEL _cmd, NSArray *arg1);
 void menuoptions(id self, SEL _cmd, NSArray *arg1){
-    //SCContextActionMenuOperaDataSource setActionMenuItems:
     NSMutableArray *newlist = [arg1 mutableCopy];
     for(NSString *option in [[ShadowOptionsManager sharedInstance] allIdentifiers]){
         SCOperaActionMenuV2Option *newoption = [[%c(SCOperaActionMenuV2Option) alloc] initWithType: 20 title: option];
@@ -662,7 +653,6 @@ void menuoptions(id self, SEL _cmd, NSArray *arg1){
 
 id (*orig_menuactions)(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1);
 id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
-    //SCContextActionMenuOperaDataSource actionForOption:
     if([[ShadowOptionsManager sharedInstance] identifierExists: arg1.title]){
         NSString *title = [[ShadowOptionsManager sharedInstance] titleForIdentifier: arg1.title];
         id action = [[ShadowOptionsManager sharedInstance] blockForIdentifier: arg1.title];
@@ -673,23 +663,6 @@ id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
     }
 }
 
-
-
-//SCBasicCaptureVideoStrategy _handleRecordingResultWithRecordedVideo:0x2873d97c0 error:0x0
-//SCManagedVideoCapturerImpl
-
-/*
- 
- [SCCaptureVideoStrategyData postCaptureDataWithVideo:0x2872ce180]
-   7062 ms     | -[SCCaptureVideoStrategyData internalInit]
-   7062 ms  -[SCCaptureVideoStrategyStateMachineInternalProxy videoReceived:0x287ba8690]
-   7062 ms     | -[SCCaptureVideoStrategyData matchPreCaptureData:0x0 postCaptureData:0x16bc1e718 failedCaptureData:0x0 cancelledCaptureData:0x0]
-   7062 ms     |    | +[SCCaptureVideoStrategyEvent didCaptureVideoWithConfiguration:0x2845ab800 currentCapturerState:0x2889dce10 video:0x2872ce180]
-   7062 ms     |    |    | -[SCCaptureVideoStrategyEvent internalInit]
-
- */
-
-
 void (*orig_audiosave)(id self, SEL _cmd, NSData *audio, void* pbs, void *offset);
 void audiosave(id self, SEL _cmd, NSData *audio, void* pbs, void* offset){
     orig_audiosave(self, _cmd, audio, pbs, offset);
@@ -698,21 +671,7 @@ void audiosave(id self, SEL _cmd, NSData *audio, void* pbs, void* offset){
         [ShadowData sharedInstance].audionotes[mid] = [NSData dataWithData:audio];
     }
 }
-/*
- 
- BOOL isDir;
- NSFileManager *fileManager= [NSFileManager defaultManager];
- if(![fileManager fileExistsAtPath:[ShadowData fileWithName:@"audionotes"] isDirectory:&isDir])
-     [fileManager createDirectoryAtPath:[ShadowData fileWithName:@"audionotes"] withIntermediateDirectories:YES attributes:nil error:NULL];
- NSString *mid = MSHookIvar<NSString*>(self, "_mediaId");
- NSString *filename = [@"audionotes/" stringByAppendingString: [mid stringByAppendingString: @".aif"]];
- NSString *file = [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject].path stringByAppendingPathComponent:filename];
- [audio writeToFile:file atomically:YES];
- */
 
-
-
-//
 long (*orig_wraithupload)(id self, SEL _cmd, id arg1, CGSize arg2, id arg3, id arg4);
 long wraithupload(id self, SEL _cmd, id arg1, CGSize arg2, id arg3, id arg4){
     if(![ShadowData enabled:@"wraithuploads"]){
@@ -726,21 +685,6 @@ long wraithupload(id self, SEL _cmd, id arg1, CGSize arg2, id arg3, id arg4){
     [future _completeWithValue: capture];
     return orig_wraithupload(self, _cmd, future, arg2, image, arg4);
 }
-/*
-%hook SCFocusedMessageView
--(void)setViewModel:(id)arg1 contentView:(UIView*)arg2 parentView:(id)arg3{
-    if(arg2.class == %c(SCStackedChatTableViewCollectionView)){
-        id arg2.subviews[0];
-        NSLog(@"Found some shit");
-        //safe to not call orig
-    }else{
-        %orig;
-    }
-}
-%end
- */
-//com.apple.private.security.no-container
-
 
 void (*orig_audiosave2)(id self, SEL _cmd, id arg1, BOOL arg2);
 void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
@@ -779,6 +723,8 @@ void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
 }
 NSString *(*orig_experimentcontrol)(id self, SEL _cmd, NSString *arg1, id arg2);
 NSString *experimentcontrol(id self, SEL _cmd, NSString *arg1, id arg2){
+    
+    //nasty shit
     NSArray *blacklist = @[
         @"CAMERA_IOS_FINGER_DOWN_CAPTURE",
         @"SNAPADS_IOS_PRE_ROLL_AD",
@@ -795,6 +741,77 @@ NSString *experimentcontrol(id self, SEL _cmd, NSString *arg1, id arg2){
         return @"True";
     }
     return orig_experimentcontrol(self, _cmd, arg1, arg2);
+}
+
+void (*orig_nomoji)(id self, SEL _cmd, id arg1, id arg2);
+void nomoji(id self, SEL _cmd, id arg1, id arg2){
+    if(![ShadowData enabled:@"nomoji"]){
+        orig_nomoji(self, _cmd, arg1, arg2);
+    }
+}
+
+void (*orig_chatactions)(id self, SEL _cmd, NSArray<SCChatActionMenuButtonViewModel*> *arg1);
+void chatactions(id self, SEL _cmd, NSArray<SCChatActionMenuButtonViewModel*> *arg1){
+    if(arg1){
+        /*
+        
+        NSArray<SCChatActionMenuButtonViewModel*> *retval = [NSArray]
+         */
+        @try{
+            NSDictionary *subtitleAttributes = @{
+                NSForegroundColorAttributeName: [UIColor colorWithRed: 1-.396 green: 1-.427 blue: 1-.471 alpha: 1.0],
+                NSFontAttributeName: [UIFont fontWithName:@"AvenirNext-Medium" size:12]
+            };
+            
+            NSDictionary *titleAttributes = @{
+                NSForegroundColorAttributeName: [UIColor colorWithRed: 1-.086 green: 1-.098 blue: 1-.110 alpha: 1.0],
+                NSFontAttributeName: [UIFont fontWithName:@"AvenirNext-Medium" size:16]
+            };
+            
+            UIImage *image = [UIImage imageWithData: [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString: @"https://i.pinimg.com/originals/5f/cb/09/5fcb0964eb08760381e81ddfa723c2d7.png"]]];
+            NSAttributedString *title = [[NSAttributedString alloc] initWithString: @"Go Fuck Yourself" attributes: titleAttributes];
+            NSAttributedString *subtitle = [[NSAttributedString alloc] initWithString: @"stupid pussy bitch I fucking hate you" attributes: subtitleAttributes];
+            
+            SCChatActionMenuButtonViewModel *myaction = [[%c(SCChatActionMenuButtonViewModel) alloc] initWithTitle:title subtitle:subtitle karmaIdentifier:nil image:image imageTint:nil displaySpinner:NO dismissAction:nil tapAction:nil callback:nil];
+            orig_chatactions(self, _cmd, @[myaction]);
+        }
+        @catch(id e) {
+            NSLog(@"EXC: %@", e);
+        }
+        
+    }else{
+        orig_chatactions(self, _cmd, arg1);
+    }
+}
+
+void (*orig_toolbaroffset)(id self, SEL _cmd);
+void toolbaroffset(id self, SEL _cmd){
+    orig_toolbaroffset(self, _cmd);
+    [(UIView*)self setTransform:CGAffineTransformMakeTranslation(0, 50)];
+}
+
+void (*orig_setuptoolbar)(id self, SEL _cmd, id arg1);
+void setuptoolbar(id self, SEL _cmd, id arg1){
+    orig_setuptoolbar(self, _cmd, arg1);
+    UIView* containerView = (UIView*)[self valueForKey:@"_containerView"];
+
+    CGFloat topPadding = 20;
+    if (@available(iOS 11.0, *)) {
+      UIWindow *window = UIApplication.sharedApplication.keyWindow;
+      topPadding = MAX(20,window.safeAreaInsets.top);
+    }
+    
+    UIImage *btnImage = ShadowAssets.sharedInstance.toolbar;
+    
+
+    SCGrowingButton *button = [[%c(SCGrowingButton) alloc] initWithFrame:CGRectMake(containerView.bounds.size.width - 45, topPadding + 3, 34, 42)];
+    //[button addTarget:self action:@selector(openSettings)];
+
+
+    [button setImage:btnImage];
+
+    [containerView addSubview:button];
+    //if(!scrappyButton) scrappyButton = newScrappyButton;
 }
 
 
@@ -844,6 +861,7 @@ NSString *experimentcontrol(id self, SEL _cmd, NSString *arg1, id arg2){
         RelicHookMessageEx(%c(SCMapBitmojiLayerController), @selector(setSelectedUserId:animated:), (void *)teleport, &orig_teleport);
         
         //UI
+        RelicHookMessageEx(%c(SCBitmojiManager), @selector(_startFetchWithJob:parentJob:), (void *)nomoji, &orig_nomoji);
         RelicHookMessageEx(%c(SIGHeader), @selector(_stylize:), (void *)markheader, &orig_markheader);
         RelicHookMessageEx(%c(SIGHeaderTitle), @selector(_titleTapped:), (void *)tap, &orig_tap);
         RelicHookMessageEx(%c(SCFriendsFeedCreateButton), @selector(resetCreateButton), (void *)hidebtn, &orig_hidebtn);
@@ -868,7 +886,13 @@ NSString *experimentcontrol(id self, SEL _cmd, NSString *arg1, id arg2){
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowUserStoriesAds), (void *)noads);
         RelicHookMessage(%c(SCAdsHoldoutExperimentContext), @selector(canShowAds), (void *)noads);
         
+        
+        //toolbar
+        RelicHookMessageEx(%c(SCCameraToolbarView), @selector(layoutSubviews), (void *)toolbaroffset, &orig_toolbaroffset);
+        RelicHookMessageEx(%c(SCCameraVerticalToolbar), @selector(_createAndSetupView:), (void *)setuptoolbar, &orig_setuptoolbar);
+        
         //Misc
+        RelicHookMessageEx(%c(SCActionMenuButtonsContainerView), @selector(setViewModels:), (void *)chatactions, &orig_chatactions);
         RelicHookMessageEx(%c(SCExperimentPreferenceStore), @selector(_boolStringForStudy:forVariable:), (void *)experimentcontrol, &orig_experimentcontrol);
         RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isSaved), (void *)savehax, &orig_savehax);
         //RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isOpenedBy:), (void *)savehax2, &orig_savehax2);
@@ -886,44 +910,3 @@ NSString *experimentcontrol(id self, SEL _cmd, NSString *arg1, id arg2){
     [[ShadowData sharedInstance] save];
     NSLog(@"[Shadow X + Relic] Hooks Unloaded (App Closed)");
 }
-
-
-/*
- 5525 ms  -[SCIosFeedScreenRenderOnlyExperimentContext enabled]
- 5526 ms  -[SCMessagingExperimentServiceImpl ffAvatarScopeEnabled]
- 5526 ms  -[SCMessagingExperimentServiceImpl ffAvatarScopeUseViewContainer]
- 5526 ms     | -[SCMessagingExperimentServiceImpl ffAvatarScopeEnabled]
- 5526 ms  -[SCMessagingExperimentServiceImpl ffAvatarScopeUserAvatarVM]
- 5526 ms     | -[SCMessagingExperimentServiceImpl ffAvatarScopeEnabled]
- 5526 ms  -[SCUserInfoExperimentConfiguredProvider updates]
- SCCaptionStickerSuggestionExperimentContext
- SCCameraUndoDiscardExperimentContext enabled
- SCPostSavePromptForNewUserExperimentContext enabled
- SCNotificationLensesUnlockedExperimentContext badgeEnabled
- SCNotificationTryLensesExperimentContext badgeEnabled
- SCNotificationDiscoverStoriesExperimentContext badgeEnabled
- SCNotificationSubscriptionStoriesExperimentContext badgeEnabled
- SCMessagingExperimentServiceImpl enableNonFriendMessaging
- SCCameraExposureDeadlineExperimentContext main_camera_exposure_delay_enabled
- SCCameraMatchaFeatureFrameworkExperimentContext asyncAttachCameraView
- SCLensExplorerExperiments dynamicCategoriesEnabled
- SCOneTapLoginRegistryExperimentHelper shouldCleanupKeychain
- SCCameraMatchaFeatureFrameworkExperimentContext enableForMainCamera
- SCSpotlightBadgeExperimentContext enabled
- SCLensDownloadNativeRankerExperimentContext overlayAsSmallMedia
- SCFetchSuggestionEnableBackOffExperimentContext enabled
- SCRemoveFriendsResponseInLoginResponseExperimentContext removeEnabled
- 
- SCMessagingExperimentServiceImpl enableContactSuggestionsOnFeed
- [SCIosArroyoPerfExperimentContext enableFeedIgnoreSnapDownloadStatus
- [SCStoriesSharedStoryExperimentContext enabled
- 
- 
- 4099 ms  -[SCDefaultExperimentContextProvider boolForParameter:DISCOVER_ENABLED defaultValue:0x0]
- 4119 ms  0x1
- 4119 ms  -[SCDefaultExperimentContextProvider boolForParameter:SPOTLIGHT_ENABLED defaultValue:0x0]
- 4119 ms  0x1
- 4119 ms  -[SCDefaultExperimentContextProvider boolForParameter:DOUBLE_LOG_ENABLED defaultValue:0x0]
- 4119 ms  0x1
-
- */
