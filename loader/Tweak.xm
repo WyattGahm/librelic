@@ -663,13 +663,29 @@ id menuactions(id self, SEL _cmd, SCOperaActionMenuV2Option *arg1){
     }
 }
 
+static BOOL play = NO;
+
 void (*orig_audiosave)(id self, SEL _cmd, NSData *audio, void* pbs, void *offset);
-void audiosave(id self, SEL _cmd, NSData *audio, void* pbs, void* offset){
-    orig_audiosave(self, _cmd, audio, pbs, offset);
-    if([ShadowData enabled:@"saveaudio"]){
+void audiosave(id self, SEL _cmd, NSData *_audio, void* pbs, void* offset){
+    orig_audiosave(self, _cmd, _audio, pbs, offset);
+//    if([ShadowData enabled:@"saveaudio"]){
+//        NSString *mid = MSHookIvar<NSString*>(self, "_mediaId");
+//        [ShadowData sharedInstance].audionotes[mid] = [NSData dataWithData:audio];
+//    }
+    if([ShadowData enabled:@"saveaudio"] && play){
         NSString *mid = MSHookIvar<NSString*>(self, "_mediaId");
-        [ShadowData sharedInstance].audionotes[mid] = [NSData dataWithData:audio];
+        if(NSData *audio = [NSData dataWithData:_audio]){
+            NSString *filename = [@"audionotes/" stringByAppendingString: [mid stringByAppendingString: @".aif"]];
+            NSString *file = [ShadowData fileWithName: filename];
+            NSString *folder = [ShadowData fileWithName: @"audionotes/"];
+            BOOL isDir;
+            if(![[NSFileManager defaultManager] fileExistsAtPath:folder isDirectory:&isDir])
+                [[NSFileManager defaultManager] createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:NULL];
+            [audio writeToFile:file atomically:YES];
+            [ShadowData sharedInstance].audionotes[mid] = nil;
+        }
     }
+    play = NO;
 }
 
 long (*orig_wraithupload)(id self, SEL _cmd, id arg1, CGSize arg2, id arg3, id arg4);
@@ -686,41 +702,6 @@ long wraithupload(id self, SEL _cmd, id arg1, CGSize arg2, id arg3, id arg4){
     return orig_wraithupload(self, _cmd, future, arg2, image, arg4);
 }
 
-void (*orig_audiosave2)(id self, SEL _cmd, id arg1, BOOL arg2);
-void audiosave2(id self, SEL _cmd, id arg1, BOOL arg2){
-    if([ShadowData enabled:@"saveaudio"]){
-        NSString *mid = MSHookIvar<NSString*>(self, "_mediaId");
-        if(NSData *audio = [ShadowData sharedInstance].audionotes[mid]){
-            NSString *filename = [@"audionotes/" stringByAppendingString: [mid stringByAppendingString: @".aif"]];
-            NSString *file = [ShadowData fileWithName: filename];
-            NSString *folder = [ShadowData fileWithName: @"audionotes/"];
-            
-            dispatch_async(dispatch_get_main_queue(), ^{
-                SIGAlertDialog *alert = [%c(SIGAlertDialog) _alertWithTitle:@"Save Audio?" description:[@"Would you like to save this audio note? Will be saved as " stringByAppendingString: file]];
-                
-                SIGAlertDialogAction *no = [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"No" actionBlock:^(){
-                    [alert dismissViewControllerAnimated:YES completion:nil];
-                }];
-                
-                SIGAlertDialogAction *yes= [%c(SIGAlertDialogAction) alertDialogActionWithTitle:@"Yes" actionBlock:^(){
-                    BOOL isDir;
-                    if(![[NSFileManager defaultManager] fileExistsAtPath:folder isDirectory:&isDir])
-                        [[NSFileManager defaultManager] createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:NULL];
-                    [audio writeToFile:file atomically:YES];
-                    [ShadowData sharedInstance].audionotes[mid] = nil;
-                    [alert dismissViewControllerAnimated:YES completion:nil];
-                }];
-                
-                [alert _setActions: @[yes,no]];
-                
-                UIViewController *topVC = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-                while (topVC.presentedViewController) topVC = topVC.presentedViewController;
-                [topVC presentViewController: alert animated: true completion:nil];
-            });
-        }
-    }
-    orig_audiosave2(self, _cmd, arg1, arg2);
-}
 NSString *(*orig_experimentcontrol)(id self, SEL _cmd, NSString *arg1, id arg2);
 NSString *experimentcontrol(id self, SEL _cmd, NSString *arg1, id arg2){
     
@@ -750,40 +731,122 @@ void nomoji(id self, SEL _cmd, id arg1, id arg2){
     }
 }
 
+
+
 void (*orig_chatactions)(id self, SEL _cmd, NSArray<SCChatActionMenuButtonViewModel*> *arg1);
 void chatactions(id self, SEL _cmd, NSArray<SCChatActionMenuButtonViewModel*> *arg1){
+    NSMutableArray *actions;
     if(arg1){
-        /*
+        actions = [arg1 mutableCopy];
         
-        NSArray<SCChatActionMenuButtonViewModel*> *retval = [NSArray]
-         */
-        @try{
-            NSDictionary *subtitleAttributes = @{
-                NSForegroundColorAttributeName: [UIColor colorWithRed: 1-.396 green: 1-.427 blue: 1-.471 alpha: 1.0],
-                NSFontAttributeName: [UIFont fontWithName:@"AvenirNext-Medium" size:12]
-            };
-            
-            NSDictionary *titleAttributes = @{
-                NSForegroundColorAttributeName: [UIColor colorWithRed: 1-.086 green: 1-.098 blue: 1-.110 alpha: 1.0],
-                NSFontAttributeName: [UIFont fontWithName:@"AvenirNext-Medium" size:16]
-            };
-            
-            UIImage *image = [UIImage imageWithData: [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString: @"https://i.pinimg.com/originals/5f/cb/09/5fcb0964eb08760381e81ddfa723c2d7.png"]]];
-            NSAttributedString *title = [[NSAttributedString alloc] initWithString: @"Go Fuck Yourself" attributes: titleAttributes];
-            NSAttributedString *subtitle = [[NSAttributedString alloc] initWithString: @"stupid pussy bitch I fucking hate you" attributes: subtitleAttributes];
-            
-            SCChatActionMenuButtonViewModel *myaction = [[%c(SCChatActionMenuButtonViewModel) alloc] initWithTitle:title subtitle:subtitle karmaIdentifier:nil image:image imageTint:nil displaySpinner:NO dismissAction:nil tapAction:nil callback:nil];
-            orig_chatactions(self, _cmd, @[myaction]);
-        }
-        @catch(id e) {
-            NSLog(@"EXC: %@", e);
-        }
+        NSDictionary *subtitleAttributes = @{
+            NSForegroundColorAttributeName: [UIColor colorWithRed: 1-.396 green: 1-.427 blue: 1-.471 alpha: 1.0],
+            NSFontAttributeName: [UIFont fontWithName:@"AvenirNext-Medium" size:12]
+        };
         
-    }else{
-        orig_chatactions(self, _cmd, arg1);
+        NSDictionary *titleAttributes = @{
+            NSForegroundColorAttributeName: [UIColor colorWithRed: 1-.086 green: 1-.098 blue: 1-.110 alpha: 1.0],
+            NSFontAttributeName: [UIFont fontWithName:@"AvenirNext-Medium" size:16]
+        };
+        
+        UIImage *image = ShadowAssets.sharedInstance.save;//[UIImage imageWithData: [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString: @"https://cdn-icons-png.flaticon.com/512/1/1576.png"]]];
+        NSAttributedString *title = [[NSAttributedString alloc] initWithString: @"Shadow Demo" attributes: titleAttributes];
+        NSAttributedString *subtitle = [[NSAttributedString alloc] initWithString: @"An example of injected cells" attributes: subtitleAttributes];
+        NSString *identifier = @"shadow.demo";
+        
+        SCChatActionMenuButtonViewModel *myaction = [[%c(SCChatActionMenuButtonViewModel) alloc] initWithTitle:title subtitle:subtitle karmaIdentifier:identifier image:image imageTint:[UIColor whiteColor] displaySpinner:NO dismissAction:nil tapAction:nil callback:nil];
+        [actions addObject:myaction];
     }
+    orig_chatactions(self, _cmd, [actions copy]);
 }
 
+/*
+ 
+ SCActionMenuButtonsContainerView.delegate
+    SCActionMenuViewController._cell
+        SCChatTableViewGenericContentHolderCell.pluginContentView
+            SCVoiceNoteMessageView._playbackSpeed [can make it save faster]
+            SCVoiceNoteMessageView->_play [play]
+            SCVoiceNoteMessageView._audioNotePlayer [requires _play()]
+                SCLazy->target
+                    SCAudioNotePlayer._audioNotePlayer
+                        MSHookIvar<NSString*>(self, "_mediaId");
+                        
+                
+ 
+ 
+ (SCActionMenuButtonView).delegate -> (SCActionMenuViewController)._actionMenuView -> (SCActionMenuView).focusedMessageView -> (SCFocusedMessageView)._viewModel
+ 
+ (SCActionMenuButtonView).delegate -> (SCActionMenuViewController)._cell -> (SCChatTableViewGenericContentHolderCell).pluginContentView -> (SCVoiceNoteMessageView) [can call _play to start the note] ._audioNotePlayer -> (SCLazy)...
+ */
+
+
+
+
+/*
+id (*orig_chatactiontap)(SCChatActionMenuButtonViewModel *self, SEL _cmd);
+id chatactiontap(SCChatActionMenuButtonViewModel *self, SEL _cmd){
+    id action = orig_chatactiontap(self, _cmd);
+    if([self.karmaIdentifier isEqual:@"shadow.demo"]){
+        NSLog(@"%@ action used!",self.title.string);
+
+    }
+    return action;
+}
+*/
+void (*orig_chatactiontap)(id self, SEL _cmd, id arg1);
+void chatactiontap(id self, SEL _cmd, id arg1){
+    SCChatActionMenuButtonViewModel *model = [self performSelector:@selector(viewModel)];
+    NSLog(@"got something idk");
+    if([model.karmaIdentifier isEqual:@"shadow.demo"]){
+        NSLog(@"%@ action used!",model.title.string);
+        @try{
+        if(id vc = [self performSelector: @selector(delegate)]){
+            NSLog(@"1");
+            if(id cell = MSHookIvar<id>(vc, "_cell")){
+                NSLog(@"2");
+                if(id content = [cell performSelector: @selector(pluginContentView)]){
+                    NSLog(@"3");
+                    if([content class] == %c(SCVoiceNoteMessageView)){
+                        NSLog(@"4");
+                        play = YES;
+                        //MSHookIvar<CGFloat>(content, "_playbackSpeed") = 1.0;
+                        [content performSelector:@selector(_play)];
+                        [content performSelector:@selector(_pause)];
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(100)), dispatch_get_main_queue(), ^(void){
+                            //[content performSelector:@selector(_stop)];
+                            [content performSelector:@selector(_pause)];
+                            //MSHookIvar<CGFloat>(content, "_playbackSpeed") = 1.0;
+                        });
+                        /*
+                        if(id lazy = MSHookIvar<id>(content, "_audioNotePlayer")){
+                            NSLog(@"5");
+                            if([lazy performSelector: @selector(isCreated)]){
+                                NSLog(@"6");
+                                if(id target = [lazy performSelector: @selector(target)]){
+                                    NSLog(@"7");
+                                    if(id player = MSHookIvar<id>(target, "_audioNotePlayer")){
+                                        NSLog(@"8");
+                                        if(NSString* mid = MSHookIvar<NSString*>(player, "_mediaId")){
+                                            NSLog(@"IT WORKS! %@", mid);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                         */
+                    }
+                }
+            }
+        }
+        }@catch(id e) {
+            NSLog(@"%@ ERRRRORRRRRR!!!!!",e);
+        }
+
+    }
+    
+    orig_chatactiontap(self, _cmd, arg1);
+}
 void (*orig_toolbaroffset)(id self, SEL _cmd);
 void toolbaroffset(id self, SEL _cmd){
     orig_toolbaroffset(self, _cmd);
@@ -838,7 +901,6 @@ void setuptoolbar(id self, SEL _cmd, id arg1){
         RelicHookMessageEx(%c(SCUnifiedProfileSquadmojiView), @selector(setViewModel:), (void *)scramblefriends, &orig_scramblefriends);
         
         //Audio note stuff
-        RelicHookMessageEx(%c(SCChatAudioNotePlayer), @selector(audioPlayerDidFinishPlaying:successfully:), (void*)audiosave2, &orig_audiosave2);
         RelicHookMessageEx(%c(SCChatAudioNotePlayer), @selector(_playAudioNoteWithData:playbackSpeed:offsetInSeconds:), (void *)audiosave, &orig_audiosave);
         
         //Media hooks
@@ -892,6 +954,7 @@ void setuptoolbar(id self, SEL _cmd, id arg1){
         RelicHookMessageEx(%c(SCCameraVerticalToolbar), @selector(_createAndSetupView:), (void *)setuptoolbar, &orig_setuptoolbar);
         
         //Misc
+        RelicHookMessageEx(%c(SCActionMenuButtonView), @selector(_didTap:), (void *)chatactiontap, &orig_chatactiontap);
         RelicHookMessageEx(%c(SCActionMenuButtonsContainerView), @selector(setViewModels:), (void *)chatactions, &orig_chatactions);
         RelicHookMessageEx(%c(SCExperimentPreferenceStore), @selector(_boolStringForStudy:forVariable:), (void *)experimentcontrol, &orig_experimentcontrol);
         RelicHookMessageEx(%c(SCNMessagingMessage), @selector(isSaved), (void *)savehax, &orig_savehax);
