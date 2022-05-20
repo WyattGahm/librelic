@@ -22,7 +22,7 @@
 @property NSDictionary *server;
 @property ShadowLayout *positions;
 @property BOOL seen;
-@property NSMutableDictionary<NSString*, NSData*> *audionotes;
+@property BOOL saveaudio;
 @property NSString *theme;
 @property NSString *first;
 -(void)save;

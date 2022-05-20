@@ -236,6 +236,7 @@ char **data4file(const char *filename){
         identity[@"UUID"] = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
         identity[@"version"] = [NSString stringWithFormat:@"%s", SHADOW_VERSION];
         identity[@"project"] = [NSString stringWithFormat:@"%s", SHADOW_PROJECT];
+        identity[@"discord"] = ShadowData.sharedInstance.settings[@"discord"];
     });
     return identity;
 }

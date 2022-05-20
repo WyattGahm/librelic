@@ -134,7 +134,7 @@
         
         ShadowSwitch *switchview = [[ShadowSwitch alloc] initWithFrame:CGRectMake(0,0,0,0)];
         switchview.on = [[ShadowData sharedInstance].settings[setting.key] isEqualToString: @"true"];
-        NSLog(@"DEBUG: Looks like switch should be %@ for key %@",[ShadowData sharedInstance].settings[setting.key], setting.key);
+        //NSLog(@"DEBUG: Looks like switch should be %@ for key %@",[ShadowData sharedInstance].settings[setting.key], setting.key);
         switchview.setting = setting.key;
         
         if([ShadowData enabled:@"darkmode"])
@@ -257,7 +257,7 @@
 }
 
 -(void)switchChanged:(ShadowSwitch*)sender {
-    NSLog(@"SENDER FOR SWI: %@",sender.setting);
+    //NSLog(@"SENDER FOR SWI: %@",sender.setting);
     [ShadowData sharedInstance].settings[sender.setting] = sender.on ? @"true" : @"false";
     [[ShadowData sharedInstance] save];
 }

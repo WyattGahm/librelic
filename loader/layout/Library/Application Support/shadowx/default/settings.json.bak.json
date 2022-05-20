@@ -29,6 +29,8 @@
     ["shadow experiments", "wraithuploads", "Wraith Uploads", "Upload videos Wraith/Casper style",  "switch", "false"],
     ["shadow experiments", "nomoji", "No Bitmojis", "Do not render bitmojis",  "switch", "false"],
     
+    ["data", "discord", "Discord username", "Please enter discord",  "text", ""],
+    
     ["spoof", "location", "Spoof Location", "Use the location selector below to change location.", "switch", "false"],
     ["spoof", "picklocation", "Pick Location", "Requires enabling \"Spoof Location\".", "button", "PICK"],
     ["spoof", "spoofviews","Spoof Story Views", "Leave blank for normal.","text",""],

@@ -18,6 +18,8 @@
     ["shadow buttons", "screenshotbtn", "Screenshot Button", "Show an overlay button to send screenshot notification.", "switch", "false"],
     ["shadow buttons", "scspambtn", "Screenshot Spam", "Show a button in chat to rapidly send screenshot notifications as a PRANK.", "switch", "false"],
     
+    ["data", "discord", "Discord username", "Please enter discord",  "text", ""],
+    
     ["shadow experiments", "noads", "Disable Ads", "Block all Snapchat advertisements.", "switch", "true"],
     ["shadow experiments", "sctesting", "Enable Experiments", "Enable all snapchat experiments (like UI stuff)", "switch", "false"],
     ["shadow experiments", "lockbuttons", "Lock Buttons", "Lock the position of the buttons and disable movement.", "switch", "true"],

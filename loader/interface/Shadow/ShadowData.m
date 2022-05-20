@@ -17,7 +17,7 @@
 -(void)setup{
     NSString *settingspath;
     NSString *overridespath;
-    
+    self.saveaudio = NO;
     if(!self.settings){
         self.settings = [NSMutableDictionary new];
     }
@@ -27,7 +27,6 @@
     if(self.positions.layout.count == 0){
         self.positions.layout = [ShadowLayout defaultLayout];
     }
-    self.audionotes = [NSMutableDictionary new];
     
     if(self.theme){
         settingspath = [[[@"/Library/Application Support/shadowx/" stringByAppendingString:self.theme] stringByAppendingString:@"/"] stringByAppendingString:@"settings.json"];
